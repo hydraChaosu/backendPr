@@ -1,6 +1,6 @@
 import express from "express"
 import 'express-async-errors';
-import {giftRouter} from "./routers/gift";
+import {giftRouter} from "./routers/user";
 import cors from "cors";
 import {handleError} from "./utils/errors";
 
@@ -11,7 +11,7 @@ app.use(cors({
 }))
 app.use(express.json()); // Content-type: application/json
 
-app.use('/gift', giftRouter);
+app.use('/user', giftRouter);
 
 app.use(handleError)
 
