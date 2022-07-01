@@ -16,15 +16,15 @@ export class BasketRecord implements ItemInBasketEntity {
     constructor(obj: ItemInBasketEntity) {
 
         if (!obj.itemId) {
-            throw new ValidationError('musi byc itemId');
+            throw new ValidationError('itemId does not exist');
         }
 
         if (!obj.userId) {
-            throw new ValidationError('musi byc userId');
+            throw new ValidationError('userId does not exist');
         }
 
         if (!obj.quantity || obj.quantity <= 0) {
-            throw new ValidationError('ilosc zakupionych rzeczy musi byc wieksza nic 0');
+            throw new ValidationError('quantity have to be greater than 0');
         }
 
         this.id = obj.id;

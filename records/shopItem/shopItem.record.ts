@@ -15,11 +15,11 @@ export class ShopItemRecord implements ShopItemEntity{
 
     constructor(obj: ShopItemEntity) {
         if (!obj.name || obj.name.length < 3 || obj.name.length > 50) {
-            throw new ValidationError('nazwa produktu musi mieć od 3 do 50 znaków.');
+            throw new ValidationError('name should be beetwen 3 and 50 characters.');
         }
 
         if (obj.quantity > 9999) {
-            throw new ValidationError('produktu nie moze być więcej niż 9999');
+            throw new ValidationError('there should be less than 9999 products.');
         }
 
         this.id = obj.id;

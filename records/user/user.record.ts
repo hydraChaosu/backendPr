@@ -9,10 +9,8 @@ type UserRecordResults = [UserRecord[], FieldPacket[]]
 export class UserRecord implements UserEntity{
 
     //user validation
-    //create itemInBasket
     //create personalinfoid
 
-    //do itemInBasket
     id: string;
     email: string;
     login: string;
@@ -20,17 +18,17 @@ export class UserRecord implements UserEntity{
 
     constructor(obj: UserEntity) {
         if (!obj.login || obj.login.length < 3 || obj.login.length > 25) {
-            throw new ValidationError('login musi mieć od 3 do 25 znaków.');
+            throw new ValidationError('login should be beetwen 3 and 50 characters.');
         }
 
         if (!obj.password || obj.password.length < 3 || obj.password.length > 25) {
-            throw new ValidationError('length musi mieć od 3 do 25 znaków.');
+            throw new ValidationError('password should be beetwen 3 and 50 characters.');
         }
 
         if (!obj.email || !obj.email.match(
             /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         )) {
-            throw new ValidationError('email nie jest poprawny');
+            throw new ValidationError('email is not correct');
         }
 
         this.id = obj.id;
