@@ -1,2 +1,2 @@
 export  * from './shopItem.entity'
-// export * from './personalInfo'
+ export * from './category.entity'
