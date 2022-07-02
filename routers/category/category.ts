@@ -1,8 +1,9 @@
 import {Router} from "express";
 import {CategoryRecord} from "../../records";
 import {CategoryEntity, CreateCategoryReq, SetCategoryForCategoryReq} from "../../types";
-import {ValidationError} from "../../utils/errors";
+import {isBetween, isNotNull, isNull} from "../../utils/dataCheck";
 export const categoryRouter = Router();
+const errorInfoName = 'category'
 
 categoryRouter
 
@@ -21,9 +22,8 @@ categoryRouter
 
         const category = await CategoryRecord.getOneByName(body.name);
 
-        if (category !== null) {
-            throw new ValidationError('category with this name already exists');
-        }
+        isNotNull(category, null,'category with this name already exists')
+        isBetween(body.name, 3, 50, errorInfoName)
 
         const newCategory = new CategoryRecord(req.body as CreateCategoryReq);
         await newCategory.insert();
@@ -37,14 +37,8 @@ categoryRouter
         } = req
 
         const category = await CategoryRecord.getOne(req.params.categoryId);
-
-        if (category === null) {
-            throw new ValidationError('No category found for this ID.');
-        }
-
-        if (!body.name || body.name.length < 3 || body.name.length > 50) {
-            throw new ValidationError('name should be beetwen 3 and 50 characters.');
-        }
+        isNull(category, null,'No category found for this ID.')
+        isBetween(body.name, 3, 50, errorInfoName)
 
         category.name = body.name;
         await category.update();
@@ -55,10 +49,8 @@ categoryRouter
     .delete('/:categoryId', async (req, res) => {
     const category = await CategoryRecord.getOne(req.params.categoryId);
 
-    if (category === null) {
-        throw new ValidationError('No category found for this ID.');
-    }
+        isNull(category, null,'No category found for this ID.')
 
-    await category.delete();
+        await category.delete();
     res.json({message: "Category deleted successfully."})
 });

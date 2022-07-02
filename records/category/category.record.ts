@@ -8,7 +8,7 @@ type CategoryRecordResults = [CategoryEntity[], FieldPacket[]]
 
 export class CategoryRecord implements CategoryEntity{
 
-    id: string;
+    id?: string;
     name: string;
 
     constructor(obj: CategoryEntity) {
