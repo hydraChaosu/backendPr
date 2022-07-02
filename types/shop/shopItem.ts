@@ -1,8 +1,11 @@
-// import {BasketEntity} from "./user.entity";
-//
-// export type CreateGiftReq = Omit<BasketEntity, 'id'>;
-//
-// export interface GetSingleGiftRes {
-//     gift: BasketEntity;
-//     givenCount: number;
-// }
+import {ShopItemEntity} from "./shopItem.entity";
+
+export type ShopItemCreateReq = Omit<ShopItemEntity, 'id'>;
+
+export interface SetShopItemCategoryReq {
+    name: string;
+    quantity: number;
+    price: number;
+    img?: string;
+    categoryId: string;
+}

@@ -2,7 +2,7 @@ import {pool} from "../../utils/db";
 import {v4 as uuid} from 'uuid';
 import {FieldPacket} from "mysql2";
 import {CategoryEntity} from "../../types";
-import {isBetween} from "../../utils/dataCheck";
+import {exists, isBetween} from "../../utils/dataCheck";
 
 type CategoryRecordResults = [CategoryEntity[], FieldPacket[]]
 const errorInfoName = 'category'
@@ -14,6 +14,7 @@ export class CategoryRecord implements CategoryEntity{
 
     constructor(obj: CategoryEntity) {
 
+        exists(obj.name)
         isBetween(obj.name, 3, 50, errorInfoName)
 
         this.id = obj.id;
@@ -36,8 +37,6 @@ export class CategoryRecord implements CategoryEntity{
     }
 
     async update() : Promise<void> {
-
-        isBetween(this.name, 3, 50, errorInfoName)
 
         await pool.execute("UPDATE `categories` SET `name` = :name WHERE `id` = :id", {
             id: this.id,

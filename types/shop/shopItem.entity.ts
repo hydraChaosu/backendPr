@@ -1,8 +1,8 @@
 export interface ShopItemEntity {
-    id: string;
+    id?: string;
     name: string;
     quantity: number;
     price: number;
-    img: string;
+    img?: string;
     categoryId: string;
 }

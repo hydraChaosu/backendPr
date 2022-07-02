@@ -1,33 +1,36 @@
 import {pool} from "../../utils/db";
-import {ValidationError} from "../../utils/errors";
 import {v4 as uuid} from 'uuid';
 import {FieldPacket} from "mysql2";
 import {ShopItemEntity} from "../../types";
+import {exists, isBetween, isBigger, isNull, isSmaller, isTypeOf} from "../../utils/dataCheck";
+import {CategoryRecord} from "../category";
 
 type ShopItemRecordResults = [ShopItemEntity[], FieldPacket[]]
+const errorInfoName = 'shop item'
 
 export class ShopItemRecord implements ShopItemEntity{
 
-    id: string;
+    id?: string;
     name: string;
     quantity: number;
     price: number;
-    img: string;
+    img?: string;
     categoryId: string;
 
     constructor(obj: ShopItemEntity) {
-        if (!obj.name || obj.name.length < 3 || obj.name.length > 50) {
-            throw new ValidationError('name should be beetwen 3 and 50 characters.');
-        }
 
-        if (obj.quantity > 9999) {
-            throw new ValidationError('there should be less than 9999 products.');
-        }
+        exists(obj.name, 'name')
+        isBetween(obj.name, 3, 50, 'shop item name')
 
-        if (!obj.categoryId) {
-            throw new ValidationError('categoryId does not exist');
-        }
+        exists(obj.quantity, 'quantity')
+        isTypeOf(obj.quantity, 'number', 'quantity')
+        isBetween(obj.quantity, 0, 9999, 'shop item quantity')
 
+        exists(obj.categoryId, 'category')
+
+        isTypeOf(obj.price, 'number', 'price')
+        isBigger(obj.price, 0, 'price')
+        // exists(obj.price, 'price')
 
         this.id = obj.id;
         this.name = obj.name;
@@ -44,6 +47,10 @@ export class ShopItemRecord implements ShopItemEntity{
             this.id = uuid();
         }
 
+        if (!this.img) {
+            this.img = '';
+        }
+
         await pool.execute("INSERT INTO `shopitems`(`id`, `name`, `quantity`, `price`, `img`, `categoryId`) VALUES(:id, :name, :quantity, :price, :img, :categoryId)", {
             id: this.id,
             name: this.name,
@@ -57,11 +64,29 @@ export class ShopItemRecord implements ShopItemEntity{
     }
 
     async update() : Promise<void> {
+
+        isTypeOf(this.categoryId, 'string', 'category id')
+        const category = await CategoryRecord.getOne(this.categoryId);
+        isNull(category, null,'category does not exists')
+
+        isTypeOf(this.name, 'string', 'name')
+        isBetween(this.name, 3, 50, 'name')
+
+        isTypeOf(this.quantity, 'number', 'quantity')
+        isBetween(this.quantity, 0, 9999, 'quantity')
+
+        isTypeOf(this.price, 'number', 'price')
+        isBigger(this.price, 0, 'price')
+
+        isTypeOf(this.img, 'string', 'img')
+
         await pool.execute("UPDATE `shopitems` SET `name` = :name, `quantity` = :quantity, `price` = :price, `img` = :img, `categoryId` = :categoryId WHERE `id` = :id", {
             id: this.id,
             name: this.name,
             quantity: this.quantity,
-            price: this.price
+            price: this.price,
+            categoryId: this.categoryId,
+            img: this.img
         });
     }
 
@@ -90,8 +115,15 @@ export class ShopItemRecord implements ShopItemEntity{
         return results.length === 0 ? null : new ShopItemRecord(results[0]);
     }
 
-    static async getByNameOne(name: string): Promise<ShopItemRecord[] | null> {
-        const [results] = (await pool.execute("SELECT * FROM `shopitems` WHERE `name` LIKE %:name%", {
+    static async getOneByName(name: string): Promise<ShopItemRecord[] | null> {
+        const [results] = (await pool.execute("SELECT * FROM `shopitems` WHERE `name` = :name ", {
+            name,
+        })) as ShopItemRecordResults;
+        return results.length === 0 ? null : results.map(obj => new ShopItemRecord(obj));
+    }
+
+    static async getOneBySimilarName(name: string): Promise<ShopItemRecord[] | null> {
+        const [results] = (await pool.execute("SELECT * FROM `shopitems` WHERE `name` LIKE :name", {
             name,
         })) as ShopItemRecordResults;
         return results.length === 0 ? null : results.map(obj => new ShopItemRecord(obj));

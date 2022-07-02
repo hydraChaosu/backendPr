@@ -12,6 +12,19 @@ export const isNotNull = (variable: any, name?: string,errorName?: string): void
     }
 }
 
+export const isSmaller = (variable: number, than: number,name?: string,errorName?: string): void => {
+    if (variable > than) {
+        throw new ValidationError(errorName ? errorName :`${name ? name : Object.keys({variable})[0]} is bigger than ${variable}`);
+    }
+}
+
+export const isBigger = (variable: number, than: number,name?: string,errorName?: string): void => {
+    if (variable  < than) {
+        throw new ValidationError(errorName ? errorName :`${name ? name : Object.keys({variable})[0]} is smaller than ${variable}`);
+    }
+}
+
+
 export const isBetween = (variable: any, first: number, second: number, name?: string, errorName?: string) : void => {
 
     let isString = false
@@ -31,6 +44,15 @@ export const isBetween = (variable: any, first: number, second: number, name?: s
     }
 }
 
-export const exists = (variable: any): boolean =>
-    variable ? true : false
+export const exists = (variable: any, name?: string,errorName?: string): void => {
+    if (!variable || variable === 'undefined') {
+        throw new ValidationError(errorName ? errorName :`${name ? name : Object.keys({variable})[0]} does not exist`);
+    }
+}
 
+export const isTypeOf = (variable: any, desiredType: string,name?: string, errorName?: string): void => {
+
+    if (typeof variable !== desiredType) {
+        throw new ValidationError(errorName ? errorName :`${name ? name : Object.keys({variable})[0]} is not of type ${desiredType}`);
+    }
+}
