@@ -62,4 +62,11 @@ export class CategoryRecord implements CategoryEntity{
         return results.length === 0 ? null : new CategoryRecord(results[0]);
     }
 
+    static async getOneByName(name: string): Promise<CategoryRecord | null> {
+        const [results] = (await pool.execute("SELECT * FROM `categories` WHERE `name` = :name", {
+            name,
+        })) as CategoryRecordResults;
+        return results.length === 0 ? null : new CategoryRecord(results[0]);
+    }
+
 }
