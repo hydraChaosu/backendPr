@@ -31,9 +31,6 @@ export const isBetween = (variable: any, first: number, second: number, name?: s
     }
 }
 
-export const exists = (variable: any, name?: string,errorName?: string): void => {
+export const exists = (variable: any): boolean =>
+    variable ? true : false
 
-    if (!variable) {
-        throw new ValidationError(errorName ? errorName :`${name ? name : Object.keys({variable})[0]} does not exist`);
-    }
-}

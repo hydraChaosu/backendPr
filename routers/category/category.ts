@@ -1,9 +1,8 @@
 import {Router} from "express";
 import {CategoryRecord} from "../../records";
 import {CategoryEntity, CreateCategoryReq, SetCategoryForCategoryReq} from "../../types";
-import {isBetween, isNotNull, isNull} from "../../utils/dataCheck";
+import {isNotNull, isNull} from "../../utils/dataCheck";
 export const categoryRouter = Router();
-const errorInfoName = 'category'
 
 categoryRouter
 
@@ -23,7 +22,6 @@ categoryRouter
         const category = await CategoryRecord.getOneByName(body.name);
 
         isNotNull(category, null,'category with this name already exists')
-        isBetween(body.name, 3, 50, errorInfoName)
 
         const newCategory = new CategoryRecord(req.body as CreateCategoryReq);
         await newCategory.insert();
@@ -38,7 +36,6 @@ categoryRouter
 
         const category = await CategoryRecord.getOne(req.params.categoryId);
         isNull(category, null,'No category found for this ID.')
-        isBetween(body.name, 3, 50, errorInfoName)
 
         category.name = body.name;
         await category.update();
