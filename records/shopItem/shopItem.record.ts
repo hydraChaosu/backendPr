@@ -2,7 +2,7 @@ import {pool} from "../../utils/db";
 import {v4 as uuid} from 'uuid';
 import {FieldPacket} from "mysql2";
 import {ShopItemEntity} from "../../types";
-import {exists, isBetween, isBigger, isNull,  isTypeOf} from "../../utils/dataCheck";
+import {exists, isBetween, isBigger, isNull, isSmaller, isTypeOf} from "../../utils/dataCheck";
 import {CategoryRecord} from "../category";
 
 type ShopItemRecordResults = [ShopItemEntity[], FieldPacket[]]
@@ -19,7 +19,8 @@ export class ShopItemRecord implements ShopItemEntity{
     constructor(obj: ShopItemEntity) {
 
         exists(obj.name, 'name')
-        isBetween(obj.name, 3, 50, 'shop item name')
+        isTypeOf(obj.name, 'string', 'name')
+        isBetween(obj.name.length, 3, 50, 'shop item name')
 
         exists(obj.quantity, 'quantity')
         isTypeOf(obj.quantity, 'number', 'quantity')
@@ -30,6 +31,11 @@ export class ShopItemRecord implements ShopItemEntity{
         exists(obj.price, 'price')
         isTypeOf(obj.price, 'number', 'price')
         isBigger(obj.price, 0, 'price')
+
+        if (obj.img) {
+            isTypeOf(obj.img, 'string', 'img')
+            isSmaller(obj.img.length, 50, 'img')
+        }
 
         this.id = obj.id;
         this.name = obj.name;
@@ -59,21 +65,6 @@ export class ShopItemRecord implements ShopItemEntity{
     }
 
     async update() : Promise<void> {
-
-        isTypeOf(this.categoryId, 'string', 'category id')
-        const category = await CategoryRecord.getOne(this.categoryId);
-        isNull(category, null,'category does not exists')
-
-        isTypeOf(this.name, 'string', 'name')
-        isBetween(this.name, 3, 50, 'name')
-
-        isTypeOf(this.quantity, 'number', 'quantity')
-        isBetween(this.quantity, 0, 9999, 'quantity')
-
-        isTypeOf(this.price, 'number', 'price')
-        isBigger(this.price, 0, 'price')
-
-        isTypeOf(this.img, 'string', 'img')
 
         await pool.execute("UPDATE `shopitems` SET `name` = :name, `quantity` = :quantity, `price` = :price, `img` = :img, `categoryId` = :categoryId WHERE `id` = :id", {
             id: this.id,

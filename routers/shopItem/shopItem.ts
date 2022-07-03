@@ -2,7 +2,7 @@ import {Router} from "express";
 import {CategoryRecord, ShopItemRecord} from "../../records";
 import { ShopItemEntity} from "../../types";
 import {SetShopItemCategoryReq, ShopItemCreateReq} from "../../types/shop/shopItem";
-import {exists, isNotNull, isNull, isTypeOf} from "../../utils/dataCheck";
+import {exists, isBetween, isBigger, isNotNull, isNull, isSmaller, isTypeOf} from "../../utils/dataCheck";
 export const shopItemRouter = Router();
 
 shopItemRouter
@@ -71,11 +71,40 @@ shopItemRouter
         const shopItem = await ShopItemRecord.getOne(req.params.shopItemId);
         isNull(shopItem, null,'shop item does not exists')
 
-        shopItem.name = body.name ? body.name : shopItem.name
-        shopItem.quantity = body.quantity ? body.quantity : shopItem.quantity
-        shopItem.price = body.price ? body.price : shopItem.price
-        shopItem.categoryId = body.categoryId ? body.categoryId : shopItem.categoryId
-        shopItem.img = body.img ? body.img : shopItem.img
+        if (body.name) {
+            isTypeOf(body.name, 'string', 'name')
+            isBetween(body.name, 3, 50, 'name')
+            const shopItemCheck = await ShopItemRecord.getOneByName(body.name);
+            isNotNull(shopItemCheck, null,'shop item with this name already exists')
+            shopItem.name = body.name
+        }
+
+        if (body.img) {
+            isTypeOf(body.img, 'string', 'img')
+            isSmaller(body.img.length, 50, 'img')
+            shopItem.img = body.img
+        }
+
+        if (body.quantity || body.quantity === 0) {
+            isTypeOf(body.quantity, 'number', 'quantity')
+            isBetween(body.quantity, 0, 9999, 'quantity')
+            shopItem.quantity = body.quantity
+        }
+
+        if (body.price || body.price === 0) {
+            isTypeOf(body.price, 'number', 'price')
+            isBigger(body.price, 0, 'price')
+            shopItem.price = body.price
+        }
+
+        if (body.categoryId) {
+            isTypeOf(body.categoryId, 'string', 'category id')
+            const category = await CategoryRecord.getOne(body.categoryId);
+            isNull(category, null,'category does not exists')
+            shopItem.categoryId = body.categoryId
+        }
+
+        console.log(body.price, 'price')
 
         await shopItem.update();
 
