@@ -22,9 +22,8 @@ app.listen(3001, '0.0.0.0', () => {
     console.log('Listening on http://localhost:3001');
 });
 
-//personal info
 //basket item
-//shop item quantity 0
+//getOneById category, shopitem, personal, iteminbasket
 //user
 //auth
 //admin

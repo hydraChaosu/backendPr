@@ -33,12 +33,12 @@ export const isBetween = (variable: any, first: number, second: number, name?: s
     }
 
     if (first > second) {
-        if (variable.length > first || variable.length < second) {
+        if (variable > first || variable < second) {
             throw new ValidationError(errorName ? errorName : `${name ? name : Object.keys({variable})[0]} should be beetwen ${second} and ${first} ${isString ? 'characters' : 'value'}.`);
         }
 
     } else {
-        if  (variable.length < first || variable.length > second) {
+        if  (variable < first || variable > second) {
             throw new ValidationError(errorName ? errorName :`${name ? name : Object.keys({variable})[0]} should be beetwen ${first} and ${second} ${isString ? 'characters' : 'value'}.`);
         }
     }
@@ -52,19 +52,19 @@ export const isBetweenEqual = (variable: any, first: number, second: number, nam
     }
 
     if (first > second) {
-        if (variable.length >= first || variable.length <= second) {
+        if (variable >= first || variable <= second) {
             throw new ValidationError(errorName ? errorName : `${name ? name : Object.keys({variable})[0]} should be beetwen or equal ${second} and ${first} ${isString ? 'characters' : 'value'}.`);
         }
 
     } else {
-        if  (variable.length <= first || variable.length >= second) {
+        if  (variable <= first || variable >= second) {
             throw new ValidationError(errorName ? errorName :`${name ? name : Object.keys({variable})[0]} should be beetwen or equal ${first} and ${second} ${isString ? 'characters' : 'value'}.`);
         }
     }
 }
 
 export const exists = (variable: any, name?: string,errorName?: string): void => {
-    if (!variable || variable === 'undefined') {
+    if (variable === 'undefined') {
         throw new ValidationError(errorName ? errorName :`${name ? name : Object.keys({variable})[0]} does not exist`);
     }
 }

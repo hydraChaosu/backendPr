@@ -1,6 +1,6 @@
 export interface ItemInBasketEntity {
-    id: string;
-    itemId: string;
+    id?: string;
+    shopItemId: string;
     userId: string;
     quantity: number;
 }

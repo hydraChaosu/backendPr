@@ -1,3 +1,3 @@
-import {BasketRecord} from "./basketRecord.record";
+import {ItemInBasketRecord} from "./itemInBasket.record";
 
-export {BasketRecord} from './basketRecord.record'
+export {ItemInBasketRecord} from './itemInBasket.record'
