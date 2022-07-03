@@ -15,7 +15,7 @@ export class CategoryRecord implements CategoryEntity{
     constructor(obj: CategoryEntity) {
 
         exists(obj.name)
-        isBetweenEqual(obj.name, 3, 20, errorInfoName)
+        isBetweenEqual(obj.name.length, 3, 20, errorInfoName)
 
         this.id = obj.id;
         this.name = obj.name;

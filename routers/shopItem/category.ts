@@ -40,7 +40,9 @@ categoryRouter
         isNull(category, null,'No category found for this ID.')
 
         exists(body.name, 'name')
-        isBetweenEqual(body.name, 3, 20, errorInfoName)
+        const categoryName = await CategoryRecord.getOneByName(body.name);
+        isNotNull(categoryName, null,'category with this name already exists')
+        isBetweenEqual(body.name.length, 3, 20, errorInfoName)
 
         category.name = body.name;
         await category.update();
