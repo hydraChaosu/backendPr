@@ -1,8 +1,14 @@
-// import {BasketEntity} from "./user.entity";
-//
-// export type CreateGiftReq = Omit<BasketEntity, 'id'>;
-//
-// export interface GetSingleGiftRes {
-//     gift: BasketEntity;
-//     givenCount: number;
-// }
+import {PersonalInfoEntity} from "./personalInfo.entity";
+
+export type PersonalInfoCreateReq = Omit<PersonalInfoEntity, 'id'>;
+
+export interface SetPersonalInfoReq {
+    userId: string;
+    name?: string;
+    surname?: string;
+    street?: string;
+    buildingNumber?: string;
+    postalCode?: string;
+    city?: string;
+    country?: string;
+}

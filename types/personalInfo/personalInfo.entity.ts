@@ -1,5 +1,5 @@
 export interface PersonalInfoEntity {
-    id: string;
+    id?: string;
     userId: string;
     name?: string;
     surname?: string;

@@ -1,14 +1,15 @@
 import {pool} from "../../utils/db";
-import {ValidationError} from "../../utils/errors";
 import {v4 as uuid} from 'uuid';
 import {FieldPacket} from "mysql2";
 import {PersonalInfoEntity} from "../../types";
+import {exists, isTypeOf} from "../../utils/dataCheck";
+
 
 type PersonalInfoRecordResults = [PersonalInfoEntity[], FieldPacket[]]
 
 export class PersonalInfoRecord implements PersonalInfoEntity {
 
-    id: string;
+    id?: string;
     userId: string;
     name?: string;
     surname?: string;
@@ -20,9 +21,8 @@ export class PersonalInfoRecord implements PersonalInfoEntity {
 
     constructor(obj: PersonalInfoEntity) {
 
-        if (!obj.userId) {
-            throw new ValidationError('userId does not exist');
-        }
+        exists(obj.userId, 'user Id')
+        isTypeOf(obj.userId, 'string', 'user Id')
 
         this.id = obj.id;
         this.userId = obj.userId
@@ -33,7 +33,6 @@ export class PersonalInfoRecord implements PersonalInfoEntity {
         this.street = obj.street
         this.buildingNumber = obj.buildingNumber
         this.postalCode = obj.postalCode
-
 
     }
 
@@ -60,6 +59,7 @@ export class PersonalInfoRecord implements PersonalInfoEntity {
     }
 
     async update() : Promise<void> {
+
         await pool.execute("UPDATE `personalinfo` SET `name` = :name, `surname` = :surname, `city` = :city, `country` = :country, `street` = :street, `buildingNumber` = :buildingNumber, `postalCode` = :postalCode WHERE `id` = :id", {
             id: this.id,
             name: this.name,
@@ -79,7 +79,7 @@ export class PersonalInfoRecord implements PersonalInfoEntity {
     }
 
     static async getUserInfo(userId: string) : Promise<PersonalInfoRecord> {
-        const [results] = (await pool.execute("SELECT * FROM `personalinfo` WHERE ` `userId` = :userId", {
+        const [results] = (await pool.execute("SELECT * FROM `personalinfo` WHERE `userId` = :userId", {
             userId,
         }))as PersonalInfoRecordResults;
         return results.length === 0 ? null : new PersonalInfoRecord(results[0]);

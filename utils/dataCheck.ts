@@ -44,6 +44,25 @@ export const isBetween = (variable: any, first: number, second: number, name?: s
     }
 }
 
+export const isBetweenEqual = (variable: any, first: number, second: number, name?: string, errorName?: string) : void => {
+
+    let isString = false
+    if (typeof(variable) === 'string') {
+        isString = true
+    }
+
+    if (first > second) {
+        if (variable.length >= first || variable.length <= second) {
+            throw new ValidationError(errorName ? errorName : `${name ? name : Object.keys({variable})[0]} should be beetwen or equal ${second} and ${first} ${isString ? 'characters' : 'value'}.`);
+        }
+
+    } else {
+        if  (variable.length <= first || variable.length >= second) {
+            throw new ValidationError(errorName ? errorName :`${name ? name : Object.keys({variable})[0]} should be beetwen or equal ${first} and ${second} ${isString ? 'characters' : 'value'}.`);
+        }
+    }
+}
+
 export const exists = (variable: any, name?: string,errorName?: string): void => {
     if (!variable || variable === 'undefined') {
         throw new ValidationError(errorName ? errorName :`${name ? name : Object.keys({variable})[0]} does not exist`);
