@@ -1,8 +1,7 @@
 import {pool} from "../../utils/db";
-import {ValidationError} from "../../utils/errors";
 import {v4 as uuid} from 'uuid';
 import {FieldPacket} from "mysql2";
-import {ItemInBasketEntity} from "../../types/itemInBasket";
+import {ItemInBasketEntity} from "../../types";
 import {exists, isBetween, isTypeOf} from "../../utils/dataCheck";
 
 type ItemInBasketRecordResults = [ItemInBasketEntity[], FieldPacket[]]
@@ -24,7 +23,7 @@ export class ItemInBasketRecord implements ItemInBasketEntity {
 
         exists(obj.quantity, 'quantity')
         isTypeOf(obj.quantity, 'number', 'quantity')
-        isBetween(obj.quantity, 0, 9999, 'shop item quantity')
+        isBetween(obj.quantity, 1, 999, 'shop item quantity')
 
         this.id = obj.id;
         this.userId = obj.userId
@@ -38,10 +37,10 @@ export class ItemInBasketRecord implements ItemInBasketEntity {
             this.id = uuid();
         }
 
-        await pool.execute("INSERT INTO `basketelements`(`id`, `userId`, `itemId`, `quantity`) VALUES(:id, :userId, :shopItemId, :quantity)", {
+        await pool.execute("INSERT INTO `basketelements`(`id`, `shopItemId`, `userId`, `quantity`) VALUES(:id, :shopItemId, :userId, :quantity)", {
             id: this.id,
             userId: this.userId,
-            itemId: this.shopItemId,
+            shopItemId: this.shopItemId,
             quantity: this.quantity,
         });
 
@@ -69,7 +68,7 @@ export class ItemInBasketRecord implements ItemInBasketEntity {
     }
 
     static async listAllSameShopItems(itemId: string) : Promise<ItemInBasketRecord[]> {
-        const [results] = (await pool.execute("SELECT * FROM `basketelements` WHERE  `itemId` = :itemId", {
+        const [results] = (await pool.execute("SELECT * FROM `basketelements` WHERE  `shopItemId` = :itemId", {
             itemId,
         }))as ItemInBasketRecordResults;
         return results.map(obj => new ItemInBasketRecord(obj));

@@ -1,8 +1,8 @@
 import {Router} from "express";
-import {CategoryRecord, ItemInBasketRecord, PersonalInfoRecord, ShopItemRecord, UserRecord} from "../../records";
-import {PersonalInfoCreateReq, PersonalInfoEntity} from "../../types";
-import {exists, isNotNull, isNull, isSmaller, isTypeOf} from "../../utils/dataCheck";
-import {SetPersonalInfoReq} from "../../types";
+import { ItemInBasketRecord, ShopItemRecord, UserRecord} from "../../records";
+import {ItemInBasketEntity} from "../../types";
+import {exists, isBetween, isNull, isTypeOf} from "../../utils/dataCheck";
+import {ItemInBasketCreateReq, SetItemInBasketReq} from "../../types/itemInBasket/itemInBasket";
 export const itemInBasketRouter = Router();
 
 itemInBasketRouter
@@ -45,139 +45,51 @@ itemInBasketRouter
     })
     .post('/', async (req, res) => {
         const { body } : {
-            body: PersonalInfoCreateReq
+            body: ItemInBasketCreateReq
         } = req
 
         exists(body.userId, 'user id')
         isTypeOf(body.userId, 'string', 'user Id')
-
         const user = await UserRecord.getOne(body.userId);
         isNull(user, null,'user does not exists')
 
-        const personalInfo = await PersonalInfoRecord.getUserInfo(body.userId)
-        isNotNull(personalInfo, '', 'this user already has personal info')
+        exists(body.shopItemId, 'shopItem id')
+        isTypeOf(body.shopItemId, 'string', 'shopItem Id')
+        const shopItem = await ShopItemRecord.getOne(body.shopItemId);
+        isNull(shopItem, null,'shop Item does not exists')
 
-        if (body.name) {
-            isTypeOf(body.name, 'string', 'name')
-            isSmaller(body.name.length, 45,'', 'name is longer than 45 characters')
-        } else {
-            body.name = null
-        }
+        const newItemInBasket = new ItemInBasketRecord(req.body as ItemInBasketCreateReq);
+        await newItemInBasket.insert();
 
-        if (body.surname) {
-            isTypeOf(body.surname, 'string', 'surname')
-            isSmaller(body.surname.length, 47, '', 'surname is longer than 47 characters')
-        } else {
-            body.surname = null
-        }
-
-        if (body.city) {
-            isTypeOf(body.city, 'string', 'city')
-            isSmaller(body.city.length, 85, '', 'city name is longer than 85 characters')
-        } else {
-            body.city = null
-        }
-
-        if (body.country) {
-            isTypeOf(body.country, 'string', 'country')
-            isSmaller(body.country.length, 56, '', 'country nam is longer than 56 characters')
-        } else {
-            body.country = null
-        }
-
-        if (body.street) {
-            isTypeOf(body.street, 'string', 'street')
-            isSmaller(body.street.length, 85, '', 'street name is longer than 85 characters')
-        } else {
-            body.street = null
-        }
-
-        if (body.buildingNumber) {
-            isTypeOf(body.buildingNumber, 'string', 'buildingNumber')
-            isSmaller(body.buildingNumber.length, 10, '', 'building number is longer than 10 characters')
-        } else {
-            body.buildingNumber = null
-        }
-
-        if (body.postalCode) {
-            isTypeOf(body.postalCode, 'string', 'postalCode')
-            isSmaller(body.postalCode.length, 6, '', 'postal code number is longer than 6 characters')
-        } else {
-            body.postalCode = null
-        }
-
-        const newPersonalInfo = new PersonalInfoRecord(req.body as PersonalInfoCreateReq);
-        await newPersonalInfo.insert();
-
-
-        res.json(newPersonalInfo as PersonalInfoEntity);
+        res.json(newItemInBasket as ItemInBasketEntity);
     })
 
-    .patch('/:personalInfoId', async (req, res) => {
+    .patch('/:itemInBasketId', async (req, res) => {
         const { body } : {
-            body: SetPersonalInfoReq
+            body: SetItemInBasketReq
         } = req
 
-        exists(req.params.personalInfoId, 'personal Info Id param')
-        const personalInfo = await PersonalInfoRecord.getOne(req.params.personalInfoId);
-        isNull(personalInfo, null,'Personal Info does not exists')
+        exists(req.params.itemInBasketId, 'itemInBasketId  Id param')
+        const itemInBasket = await ItemInBasketRecord.getOne(req.params.itemInBasketId);
+        isNull(itemInBasket, null,'item In Basket does not exists')
 
-        console.log(body.name, 'name')
+        exists(body.quantity, 'quantity')
+        isTypeOf(body.quantity, 'number', 'quantity')
+        isBetween(body.quantity, 0, 9999, 'shop item quantity')
 
-        if (body.name) {
-            isTypeOf(body.name, 'string', 'name')
-            isSmaller(body.name.length, 45,'', 'name is longer than 45 characters')
-            personalInfo.name = body.name
-        }
+        itemInBasket.quantity = body.quantity
+        await itemInBasket.update();
 
-        if (body.surname) {
-            isTypeOf(body.surname, 'string', 'surname')
-            isSmaller(body.surname.length, 47, '', 'surname is longer than 47 characters')
-            personalInfo.surname = body.surname
-        }
-
-        if (body.city) {
-            isTypeOf(body.city, 'string', 'city')
-            isSmaller(body.city.length, 85, '', 'city name is longer than 85 characters')
-            personalInfo.city = body.city
-        }
-
-        if (body.country) {
-            isTypeOf(body.country, 'string', 'country')
-            isSmaller(body.country.length, 56, '', 'country nam is longer than 56 characters')
-            personalInfo.country = body.country
-        }
-
-        if (body.street) {
-            isTypeOf(body.street, 'string', 'street')
-            isSmaller(body.street.length, 85, '', 'street name is longer than 85 characters')
-            personalInfo.street = body.street
-        }
-
-        if (body.buildingNumber) {
-            isTypeOf(body.buildingNumber, 'string', 'buildingNumber')
-            isSmaller(body.buildingNumber.length, 10, '', 'building number is longer than 10 characters')
-            personalInfo.buildingNumber = body.buildingNumber
-        }
-
-        if (body.postalCode) {
-            isTypeOf(body.postalCode, 'string', 'postalCode')
-            isSmaller(body.postalCode.length, 6, '', 'postal code number is longer than 6 characters')
-            personalInfo.postalCode = body.postalCode
-        }
-
-        await personalInfo.update();
-
-        res.json(personalInfo)
+        res.json(itemInBasket)
     })
 
-    .delete('/:personalInfoId', async (req, res) => {
+    .delete('/:itemInBasket', async (req, res) => {
 
-        exists(req.params.personalInfoId, 'shop item id param')
-        const personalInfo = await PersonalInfoRecord.getOne(req.params.personalInfoId);
+        exists(req.params.itemInBasket, 'itemInBasket id param')
+        const itemInBasket = await ItemInBasketRecord.getOne(req.params.itemInBasket);
 
-        isNull(personalInfo, null,'No shopItem found for this ID.')
+        isNull(itemInBasket, null,'No item In Basket found for this ID.')
 
-        await personalInfo.delete();
+        await itemInBasket.delete();
         res.json({message: "personal Info deleted successfully."})
     });
