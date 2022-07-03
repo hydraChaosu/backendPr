@@ -2,12 +2,12 @@ import {Router} from "express";
 import {CategoryRecord, ShopItemRecord} from "../../records";
 import { ShopItemEntity} from "../../types";
 import {SetShopItemCategoryReq, ShopItemCreateReq} from "../../types/shop/shopItem";
-import {exists, isBetween, isBigger, isNotNull, isNull, isTypeOf} from "../../utils/dataCheck";
+import {exists, isNotNull, isNull, isTypeOf} from "../../utils/dataCheck";
 export const shopItemRouter = Router();
 
 shopItemRouter
 
-    .get('/', async (req, res) => {
+    .get('/all', async (req, res) => {
         const shopItemList = await ShopItemRecord.listAll();
 
         res.json({
@@ -41,17 +41,23 @@ shopItemRouter
 
         exists(body.name, 'name')
         isTypeOf(body.name, 'string', 'name')
+        const shopItem = await ShopItemRecord.getOneByName(body.name);
+        isNotNull(shopItem, null,'shop item with this name already exists')
+
         exists(body.categoryId, 'category id')
         isTypeOf(body.categoryId, 'string', 'category id')
-
-        const shopItem = await ShopItemRecord.getOneByName(body.name);
         const category = await CategoryRecord.getOne(body.categoryId);
-
-        isNotNull(shopItem, null,'shop item with this name already exists')
         isNull(category, null,'category does not exists')
+
+        body.name = body.name ? body.name : null
+        body.quantity = body.quantity ? body.quantity : null
+        body.price = body.price ? body.price : null
+        body.categoryId = body.categoryId ? body.categoryId : null
+        body.img = body.img ? body.img : null
 
         const newShopItem = new ShopItemRecord(req.body as ShopItemCreateReq);
         await newShopItem.insert();
+
 
         res.json(newShopItem as ShopItemEntity);
     })

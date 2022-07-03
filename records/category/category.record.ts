@@ -2,7 +2,7 @@ import {pool} from "../../utils/db";
 import {v4 as uuid} from 'uuid';
 import {FieldPacket} from "mysql2";
 import {CategoryEntity} from "../../types";
-import {exists, isBetween} from "../../utils/dataCheck";
+import {exists, isBetweenEqual} from "../../utils/dataCheck";
 
 type CategoryRecordResults = [CategoryEntity[], FieldPacket[]]
 const errorInfoName = 'category'
@@ -15,7 +15,7 @@ export class CategoryRecord implements CategoryEntity{
     constructor(obj: CategoryEntity) {
 
         exists(obj.name)
-        isBetween(obj.name, 3, 50, errorInfoName)
+        isBetweenEqual(obj.name, 3, 20, errorInfoName)
 
         this.id = obj.id;
         this.name = obj.name;

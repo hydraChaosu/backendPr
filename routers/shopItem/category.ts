@@ -1,13 +1,13 @@
 import {Router} from "express";
 import {CategoryRecord} from "../../records";
 import {CategoryEntity, CreateCategoryReq, SetCategoryForCategoryReq} from "../../types";
-import {exists, isBetween, isNotNull, isNull, isTypeOf} from "../../utils/dataCheck";
+import {exists, isBetweenEqual, isNotNull, isNull} from "../../utils/dataCheck";
 export const categoryRouter = Router();
 const errorInfoName = 'category'
 
 categoryRouter
 
-    .get('/', async (req, res) => {
+    .get('/all', async (req, res) => {
         const categoryList = await CategoryRecord.listAll();
 
         res.json({
@@ -22,9 +22,7 @@ categoryRouter
 
         exists(body.name, 'name')
         const category = await CategoryRecord.getOneByName(body.name);
-
         isNotNull(category, null,'category with this name already exists')
-        isBetween(body.name, 3, 50, errorInfoName)
 
         const newCategory = new CategoryRecord(req.body as CreateCategoryReq);
         await newCategory.insert();
@@ -40,8 +38,9 @@ categoryRouter
         exists(req.params.categoryId, 'category Id')
         const category = await CategoryRecord.getOne(req.params.categoryId);
         isNull(category, null,'No category found for this ID.')
+
         exists(body.name, 'name')
-        isBetween(body.name, 3, 50, errorInfoName)
+        isBetweenEqual(body.name, 3, 20, errorInfoName)
 
         category.name = body.name;
         await category.update();
@@ -50,9 +49,8 @@ categoryRouter
     })
 
     .delete('/:categoryId', async (req, res) => {
-    const category = await CategoryRecord.getOne(req.params.categoryId);
-
         exists(req.params.categoryId, 'categoryId')
+        const category = await CategoryRecord.getOne(req.params.categoryId);
         isNull(category, null,'No category found for this ID.')
 
         await category.delete();

@@ -2,11 +2,10 @@ import {pool} from "../../utils/db";
 import {v4 as uuid} from 'uuid';
 import {FieldPacket} from "mysql2";
 import {ShopItemEntity} from "../../types";
-import {exists, isBetween, isBigger, isNull, isSmaller, isTypeOf} from "../../utils/dataCheck";
+import {exists, isBetween, isBigger, isNull,  isTypeOf} from "../../utils/dataCheck";
 import {CategoryRecord} from "../category";
 
 type ShopItemRecordResults = [ShopItemEntity[], FieldPacket[]]
-const errorInfoName = 'shop item'
 
 export class ShopItemRecord implements ShopItemEntity{
 
@@ -28,9 +27,9 @@ export class ShopItemRecord implements ShopItemEntity{
 
         exists(obj.categoryId, 'category')
 
+        exists(obj.price, 'price')
         isTypeOf(obj.price, 'number', 'price')
         isBigger(obj.price, 0, 'price')
-        // exists(obj.price, 'price')
 
         this.id = obj.id;
         this.name = obj.name;
@@ -45,10 +44,6 @@ export class ShopItemRecord implements ShopItemEntity{
     async insert(): Promise<string> {
         if (!this.id) {
             this.id = uuid();
-        }
-
-        if (!this.img) {
-            this.img = '';
         }
 
         await pool.execute("INSERT INTO `shopitems`(`id`, `name`, `quantity`, `price`, `img`, `categoryId`) VALUES(:id, :name, :quantity, :price, :img, :categoryId)", {
