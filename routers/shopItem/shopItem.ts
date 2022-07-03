@@ -34,6 +34,15 @@ shopItemRouter
             shopItemList,
         })
     })
+    .get('/one/:id', async (req, res) => {
+        exists(req.params.id, 'id param')
+        const shopItem = await ShopItemRecord.getOne(req.params.id);
+        isNull(shopItem, null,'shopItem does not exists')
+
+        res.json({
+            shopItem,
+        })
+    })
     .post('/', async (req, res) => {
         const { body } : {
             body: ShopItemCreateReq

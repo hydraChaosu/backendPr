@@ -14,6 +14,15 @@ categoryRouter
             categoryList,
         })
     })
+    .get('/one/:id', async (req, res) => {
+        exists(req.params.id, 'id param')
+        const category = await CategoryRecord.getOne(req.params.id);
+        isNull(category, null,'category does not exists')
+
+        res.json({
+            category,
+        })
+    })
 
     .post('/', async (req, res) => {
         const { body } : {

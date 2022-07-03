@@ -1,5 +1,5 @@
 import {Router} from "express";
-import { PersonalInfoRecord, UserRecord} from "../../records";
+import {PersonalInfoRecord, UserRecord} from "../../records";
 import {PersonalInfoCreateReq, PersonalInfoEntity} from "../../types";
 import {exists, isNotNull, isNull, isSmaller, isTypeOf} from "../../utils/dataCheck";
 import {SetPersonalInfoReq} from "../../types";
@@ -12,6 +12,15 @@ personalInfoRouter
 
         res.json({
             personalInfoList,
+        })
+    })
+    .get('/one/:id', async (req, res) => {
+        exists(req.params.id, 'id param')
+        const personalInfo = await PersonalInfoRecord.getOne(req.params.id);
+        isNull(personalInfo, null,'shopItem does not exists')
+
+        res.json({
+            personalInfo,
         })
     })
     .post('/', async (req, res) => {
