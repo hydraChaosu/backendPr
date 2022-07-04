@@ -3,13 +3,13 @@ import {ValidationError} from "../../utils/errors";
 import {v4 as uuid} from 'uuid';
 import {FieldPacket} from "mysql2";
 import {UserEntity} from '../../types'
+import {exists, isBetween, isTypeOf} from "../../utils/dataCheck";
 
 type UserRecordResults = [UserRecord[], FieldPacket[]]
 
 export class UserRecord implements UserEntity{
 
     //user validation
-    //create personalinfoid
 
     id: string;
     email: string;
@@ -17,19 +17,23 @@ export class UserRecord implements UserEntity{
     password: string;
 
     constructor(obj: UserEntity) {
-        if (!obj.login || obj.login.length < 3 || obj.login.length > 25) {
-            throw new ValidationError('login should be beetwen 3 and 50 characters.');
-        }
 
-        if (!obj.password || obj.password.length < 3 || obj.password.length > 25) {
-            throw new ValidationError('password should be beetwen 3 and 50 characters.');
-        }
+        exists(obj.password, 'password')
+        isTypeOf(obj.password, 'string', 'password')
+        isBetween(obj.password.length, 3, 20, 'password length')
 
-        if (!obj.email || !obj.email.match(
+        exists(obj.login, 'login')
+        isTypeOf(obj.login, 'string', 'login')
+        isBetween(obj.login.length, 3, 20, 'login length')
+
+        exists(obj.email, 'email')
+        isTypeOf(obj.email, 'string', 'email')
+        if (!obj.email.match(
             /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         )) {
             throw new ValidationError('email is not correct');
         }
+        isBetween(obj.email.length, 3, 40, 'email length')
 
         this.id = obj.id;
         this.login = obj.login;
@@ -37,8 +41,6 @@ export class UserRecord implements UserEntity{
         this.password = obj.password;
 
     }
-
-
 
     async insert(): Promise<string> {
         if (!this.id) {
