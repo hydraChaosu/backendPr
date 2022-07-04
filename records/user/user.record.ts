@@ -83,4 +83,18 @@ export class UserRecord implements UserEntity{
         })) as UserRecordResults;
         return results.length === 0 ? null : new UserRecord(results[0]);
     }
+
+    static async isLoginUsed(login: string): Promise<Boolean> {
+        const [results] = (await pool.execute("SELECT * FROM `users` WHERE `login` = :login", {
+            login,
+        })) as UserRecordResults;
+        return results.length !== 0;
+    }
+
+    static async isEmailUsed(email: string): Promise<Boolean> {
+        const [results] = (await pool.execute("SELECT * FROM `users` WHERE `email` = :email", {
+            email,
+        })) as UserRecordResults;
+        return results.length !== 0;
+    }
 }
