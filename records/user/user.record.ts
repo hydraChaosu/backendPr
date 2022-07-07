@@ -20,7 +20,7 @@ export class UserRecord implements UserEntity{
 
         exists(obj.password, 'password')
         isTypeOf(obj.password, 'string', 'password')
-        isBetween(obj.password.length, 3, 20, 'password length')
+        isBetween(obj.password.length, 3, 60, 'password length')
 
         exists(obj.login, 'login')
         isTypeOf(obj.login, 'string', 'login')
@@ -46,8 +46,8 @@ export class UserRecord implements UserEntity{
         if (!this.id) {
             this.id = uuid();
         }
-
-        await pool.execute("INSERT INTO `users`(`id`, `login`, `email`,`password`) VALUES(:id, :name, :email, :password)", {
+        console.log(this)
+        await pool.execute("INSERT INTO `users`(`id`, `login`, `email`,`password`) VALUES(:id, :login, :email, :password)", {
             id: this.id,
             login: this.login,
             email: this.email,
@@ -80,6 +80,13 @@ export class UserRecord implements UserEntity{
     static async getOne(id: string): Promise<UserRecord | null> {
         const [results] = (await pool.execute("SELECT * FROM `users` WHERE `id` = :id", {
             id,
+        })) as UserRecordResults;
+        return results.length === 0 ? null : new UserRecord(results[0]);
+    }
+
+    static async getOneByLogin(login: string): Promise<UserRecord | null> {
+        const [results] = (await pool.execute("SELECT * FROM `users` WHERE `login` = :login", {
+            login,
         })) as UserRecordResults;
         return results.length === 0 ? null : new UserRecord(results[0]);
     }

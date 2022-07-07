@@ -2,8 +2,11 @@ import {Router} from "express";
 import { UserRecord} from "../../records";
 import {exists, isBetween, isNull, isTypeOf} from "../../utils/dataCheck";
 import {UserEntity} from "../../types";
-import {CreateUserReq, SetUserCategoryReq} from "../../types/user/user";
+import {CreateUserReq, LoginUserReq, SetUserCategoryReq} from "../../types/user/user";
 import {ValidationError} from "../../utils/errors";
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 export const userRouter = Router();
 
 userRouter
@@ -24,7 +27,7 @@ userRouter
             user,
         })
     })
-    .post('/', async (req, res) => {
+    .post('/register', async (req, res) => {
         const { body } : {
             body: CreateUserReq
         } = req
@@ -42,12 +45,41 @@ userRouter
         if (isEmailUsed) {
             throw new ValidationError('email is already in use')
         }
+        exists(body.password, 'password')
+        isTypeOf(body.password, 'string', 'password')
+        isBetween(body.password.length, 3, 60, 'password length')
+        const hashedPassword = await bcrypt.hash(body.password, saltRounds).then(function(hash:string) {
+            body.password = hash
+        });
 
         const newShopItem = new UserRecord(req.body as CreateUserReq);
         await newShopItem.insert();
 
         res.json(newShopItem as UserEntity);
     })
+    .post('/login', async (req, res) => {
+        const { body } : {
+            body: LoginUserReq
+        } = req
+
+        exists(body.login, 'login')
+        isTypeOf(body.login, 'string', 'login')
+        const user = await UserRecord.getOneByLogin(body.login);
+        isNull(user, null,'shopItem does not exists')
+
+        exists(body.password, 'password')
+        isTypeOf(body.password, 'string', 'password')
+        isBetween(body.password.length, 3, 60, 'password length')
+
+        const match = await bcrypt.compare(body.password, user.password);
+        if (match) {
+            res.json({loggin: true});
+        } else {
+            throw new ValidationError('Password does not match')
+        }
+
+    })
+
 
     .patch('/:userId', async (req, res) => {
         const { body } : {
@@ -70,7 +102,10 @@ userRouter
 
         if (body.password) {
             isTypeOf(body.password, 'string', 'password')
-            isBetween(body.password.length, 3, 20, 'password length')
+            isBetween(body.password.length, 3, 60, 'password length')
+            const hashedPassword = await bcrypt.hash(body.password, saltRounds).then(function(hash:string) {
+                body.password = hash
+            });
             user.password = body.password
         }
 
