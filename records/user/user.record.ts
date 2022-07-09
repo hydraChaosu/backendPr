@@ -11,7 +11,7 @@ export class UserRecord implements UserEntity{
 
     //user validation
 
-    id: string;
+    id?: string;
     email: string;
     login: string;
     password: string;

@@ -1,9 +1,11 @@
 import {Router} from "express";
-import { UserRecord} from "../../records";
+import {PersonalInfoRecord, UserRecord} from "../../records";
 import {exists, isBetween, isNull, isTypeOf} from "../../utils/dataCheck";
-import {UserEntity} from "../../types";
-import {CreateUserReq, LoginUserReq, SetUserCategoryReq} from "../../types/user/user";
-import {ValidationError} from "../../utils/errors";
+import { PersonalInfoCreateReq, UserAuthReq, UserEntity} from "../../types";
+import {CreateUserReq, LoginUserReq, SetUserCategoryReq} from "../../types";
+import {AuthInvalidError, InvalidTokenError, ValidationError} from "../../utils/errors";
+import {generateAccessToken} from "../../utils/generateToken";
+import {authenticateToken} from '../../middleware/auth'
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
@@ -11,26 +13,30 @@ export const userRouter = Router();
 
 userRouter
 
-    .get('/all', async (req, res) => {
-        const userList = await UserRecord.listAll();
+    .get('/one', authenticateToken, async (req: UserAuthReq, res) => {
 
-        res.json({
-            userList,
-        })
-    })
-    .get('/one/:id', async (req, res) => {
-        exists(req.params.id, 'id param')
-        const user = await UserRecord.getOne(req.params.id);
+        const { id: reqUserId } = req.user
+        if (!reqUserId) throw new InvalidTokenError()
+
+        exists(reqUserId, 'id param')
+        isTypeOf(reqUserId, 'string', 'user id')
+        const user = await UserRecord.getOne(reqUserId);
         isNull(user, null,'user does not exists')
+
+        if (user.id !== reqUserId) throw new AuthInvalidError()
 
         res.json({
             user,
         })
     })
-    .post('/register', async (req, res) => {
+    .post('/register', async (req: UserAuthReq, res) => {
         const { body } : {
             body: CreateUserReq
         } = req
+
+        if (req.user) {
+            res.json({"message": "already logged in"})
+        }
 
         exists(body.login, 'login')
         isTypeOf(body.login, 'string', 'login')
@@ -52,15 +58,32 @@ userRouter
             body.password = hash
         });
 
-        const newShopItem = new UserRecord(req.body as CreateUserReq);
-        await newShopItem.insert();
+        const user = new UserRecord(req.body as CreateUserReq);
+        await user.insert();
 
-        res.json(newShopItem as UserEntity);
+        const personalInfoTemp = {
+            userId: user.id,
+            name: null,
+            surname: null,
+            city: null,
+            country: null,
+            street: null,
+            buildingNumber: null,
+            postalCode: null
+        } as PersonalInfoCreateReq
+        const newPersonalInfo = new PersonalInfoRecord(personalInfoTemp);
+        await newPersonalInfo.insert();
+
+        res.json(user as UserEntity);
     })
-    .post('/login', async (req, res) => {
+    .post('/login', async (req: UserAuthReq, res) => {
         const { body } : {
             body: LoginUserReq
         } = req
+
+        if (req.user) {
+            res.json({"message": "already logged in"})
+        }
 
         exists(body.login, 'login')
         isTypeOf(body.login, 'string', 'login')
@@ -73,7 +96,8 @@ userRouter
 
         const match = await bcrypt.compare(body.password, user.password);
         if (match) {
-            res.json({loggin: true});
+            const token = generateAccessToken( {id: user.id, email: user.email} )
+            res.json({token});
         } else {
             throw new ValidationError('Password does not match')
         }
@@ -81,13 +105,16 @@ userRouter
     })
 
 
-    .patch('/:userId', async (req, res) => {
+    .patch('/',authenticateToken, async (req: UserAuthReq, res) => {
         const { body } : {
             body: SetUserCategoryReq
         } = req
 
-        exists(req.params.userId, 'user id param')
-        const user = await UserRecord.getOne(req.params.userId);
+        const { id: reqUserId } = req.user
+        if (!reqUserId) throw new InvalidTokenError()
+
+        exists(reqUserId, 'user id param')
+        const user = await UserRecord.getOne(reqUserId);
         isNull(user, null,'user does not exists')
 
         if (body.login) {
@@ -129,12 +156,17 @@ userRouter
         res.json(user)
     })
 
-    .delete('/:userId', async (req, res) => {
+    .delete('/', authenticateToken, async (req: UserAuthReq, res) => {
 
-        exists(req.params.userId, 'user id param')
-        const user = await UserRecord.getOne(req.params.userId);
+        const { id: reqUserId } = req.user
+        if (!reqUserId) throw new InvalidTokenError()
+
+        exists(reqUserId, 'user id param')
+        const user = await UserRecord.getOne(reqUserId);
 
         isNull(user, null,'No user found for this ID.')
+
+        if (user.id !== reqUserId) throw new AuthInvalidError()
 
         await user.delete();
         res.json({message: "user deleted successfully."})

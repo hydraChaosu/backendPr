@@ -8,3 +8,16 @@ export interface SetUserCategoryReq {
     password?: string;
     login?: string;
 }
+
+export interface UserTokenResponse {
+    email: string;
+    id: string;
+}
+
+export interface GetOneUserReq {
+    id: string;
+}
+
+export interface DeleteOneUserReq {
+    id: string;
+}
