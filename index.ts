@@ -24,7 +24,6 @@ app.listen(3001, '0.0.0.0', () => {
     console.log('Listening on http://localhost:3001');
 });
 
-//admin
 // test all
 // export tests
 // readme
@@ -33,3 +32,4 @@ app.listen(3001, '0.0.0.0', () => {
 // statystyki recordow
 //test all v2
 
+//passport
