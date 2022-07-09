@@ -4,10 +4,9 @@ import {ItemInBasketEntity, UserAuthReq} from "../../types";
 import {exists, isBetween, isNull, isTypeOf} from "../../utils/dataCheck";
 import {
     DeleteItemInBasketRequest,
-    GetItemInBasketRequest,
     ItemInBasketCreateReq,
     SetItemInBasketReq
-} from "../../types/itemInBasket/itemInBasket";
+} from "../../types";
 import {authenticateToken} from "../../middleware/auth";
 import {AuthInvalidError, InvalidTokenError} from "../../utils/errors";
 export const itemInBasketRouter = Router();
@@ -29,15 +28,14 @@ itemInBasketRouter
             itemsInBasketList,
         })
     })
-    .get('/one',authenticateToken, async (req: UserAuthReq, res) => {
-
-        const { body: {id} } : { body: GetItemInBasketRequest} = req
+    .get('/one/:id',authenticateToken, async (req: UserAuthReq, res) => {
 
         const { id: reqUserId } = req.user
         if (!reqUserId) throw new InvalidTokenError()
 
-        exists(reqUserId, 'user Id param')
-        isTypeOf(reqUserId, 'string', 'user id')
+        const {id} = req.params;
+        exists(id, 'id param')
+
         const user = await UserRecord.getOne(reqUserId);
         isNull(user, null,'user does not exists')
 
