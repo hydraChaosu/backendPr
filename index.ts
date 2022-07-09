@@ -4,7 +4,7 @@ import {itemInBasketRouter, personalInfoRouter, shopItemRouter, userRouter} from
 import {categoryRouter} from "./routers";
 import cors from "cors";
 import {handleError} from "./utils/errors";
-
+import 'dotenv/config'
 const app = express();
 
 app.use(cors({
@@ -24,8 +24,12 @@ app.listen(3001, '0.0.0.0', () => {
     console.log('Listening on http://localhost:3001');
 });
 
-//auth
 //admin
+// test all
+// export tests
+// readme
+// normalne testy
+// wiecej destrukturyacjia check quantity itp jako oddzielne funkcje
 // statystyki recordow
-
+//test all v2
 

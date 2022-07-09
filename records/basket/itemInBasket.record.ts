@@ -54,6 +54,15 @@ export class ItemInBasketRecord implements ItemInBasketEntity {
         });
     }
 
+    async updateFull() : Promise<void> {
+        await pool.execute("UPDATE `basketelements` SET `quantity` = :quantity, `shopItemId` =: shopItemId, `userId` =: userId WHERE `id` = :id", {
+            id: this.id,
+            quantity: this.quantity,
+            shopItemId: this.shopItemId,
+            userId: this.userId
+        });
+    }
+
     async delete() : Promise<void> {
         await pool.execute("DELETE FROM `basketelements` WHERE `id` = :id", {
             id: this.id
