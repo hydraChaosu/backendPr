@@ -64,7 +64,7 @@ export const isBetweenEqual = (variable: any, first: number, second: number, nam
 }
 
 export const exists = (variable: any, name?: string,errorName?: string): void => {
-    if (variable === 'undefined') {
+    if (variable === undefined) {
         throw new ValidationError(errorName ? errorName :`${name ? name : Object.keys({variable})[0]} does not exist`);
     }
 }
