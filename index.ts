@@ -12,6 +12,7 @@ import {categoryRouter} from "./routers";
 import cors from "cors";
 import {handleError} from "./utils/errors";
 import 'dotenv/config'
+import { adminUserRouter } from "./routers/admin/adminUser";
 const app = express();
 
 app.use(cors({
@@ -27,6 +28,7 @@ app.use('/user', userRouter);
 app.use('/admin', adminRouter);
 app.use('/admin/category', adminCategoryRouter);
 app.use('/admin/shopItem', adminShopItemRouter)
+app.use('/admin/user', adminUserRouter);
 
 app.use(handleError)
 
@@ -34,18 +36,16 @@ app.listen(3001, '0.0.0.0', () => {
     console.log('Listening on http://localhost:3001');
 });
 
-//shopitem
-//user
 //buyshopitems in user , check quantity of items if ok, remove basket items and decrease their quantity
 //personal info
 //basketinitems
-
 // export tests
+
 // readme
 
 // normalne testy
 
-// statystyki recordow
+// statystyki recordowin
 
 //eslint
 
@@ -54,6 +54,11 @@ app.listen(3001, '0.0.0.0', () => {
 //TODO express validator
 //TODO passport
 
+//wlasne validatory szczegolowe
+
 //react
 
 //catch mysql2 errors
+
+//tokens in db
+//cashe in db
