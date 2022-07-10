@@ -36,6 +36,7 @@ app.listen(3001, '0.0.0.0', () => {
 
 //shopitem
 //user
+//buyshopitems in user , check quantity of items if ok, remove basket items and decrease their quantity
 //personal info
 //basketinitems
 
@@ -54,3 +55,5 @@ app.listen(3001, '0.0.0.0', () => {
 //TODO passport
 
 //react
+
+//catch mysql2 errors

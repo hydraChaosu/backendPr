@@ -1,10 +1,11 @@
 import {NextFunction} from "express";
-import {Request, Response} from "express/ts4.0";
+import {Response} from "express/ts4.0";
 import {AuthInvalidError, TokenError} from "../utils/errors";
+import {IsAdminRequest, UserAuthReq} from "../types";
 
 const jwt = require('jsonwebtoken');
 
-export function authenticateToken(req: Request, res: Response, next: NextFunction) {
+export function authenticateToken(req: UserAuthReq, res: Response, next: NextFunction) {
     const authHeader = req.headers['authorization']
 
     const token = authHeader && authHeader.split(' ')[0]
@@ -18,16 +19,18 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
 
         if (err) throw new AuthInvalidError()
 
-        // @ts-ignore
         req.user = user
 
         next()
     })
 }
 
-export function adminToken(req: Request, res: Response, next: NextFunction) {
+export function adminToken(req: IsAdminRequest, res: Response, next: NextFunction) {
+
     const authHeader = req.headers['admin-authorization']
+
     let token = null
+
     if (typeof authHeader === "string") {
         token = authHeader && authHeader.split(' ')[0]
     }
@@ -41,7 +44,6 @@ export function adminToken(req: Request, res: Response, next: NextFunction) {
 
         if (err) throw new AuthInvalidError()
 
-        // @ts-ignore
         req.isAdmin = true
 
         next()
