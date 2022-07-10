@@ -3,28 +3,29 @@ import {adminToken} from "../../middleware/auth";
 import {
     CategoryEntity,
     CreateCategoryReq,
-    IsAdminRequest,
-     UpdateCategoryForCategoryReq
+    IsAdminRequest, SetCategoryForCategoryReq,
+    UpdateCategoryForCategoryReq
 } from "../../types";
 import {AuthInvalidError} from "../../utils/errors";
 import {exists, isBetweenEqual, isNotNull, isNull, isTypeOf} from "../../utils/dataCheck";
 import {CategoryRecord} from "../../records";
-import {DeleteItemInBasketRequest} from "../../types/itemInBasket/itemInBasket";
+import {DeleteItemInBasketRequest} from "../../types";
 
-export const adminCategory = Router();
+export const adminCategoryRouter = Router();
 
-adminCategory
-    .get('/category/all', adminToken,async (req:IsAdminRequest, res) => {
+adminCategoryRouter
+    .get('/all', adminToken,async (req:IsAdminRequest, res) => {
+
         if (!req.isAdmin) throw new AuthInvalidError()
 
         const categoryList = await CategoryRecord.listAll();
 
-        res.json({
-            categoryList,
-        })
+        res.json(
+            categoryList as CategoryEntity[]
+        )
     })
 
-    .get('/category/:name',adminToken, async (req: IsAdminRequest, res) => {
+    .get('/:name',adminToken, async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()
 
@@ -32,14 +33,11 @@ adminCategory
         exists(name, 'name param')
 
         const category = await CategoryRecord.getOneByName(name);
-        isNotNull(category, null,'category with this name already exists')
+        isNull(category, null,'category does not exists')
 
-        const newCategory = new CategoryRecord(req.body as CreateCategoryReq);
-        await newCategory.insert();
-
-        res.json(newCategory as CategoryEntity);
+        res.json(category as CategoryEntity);
     })
-    .get('/category/one/:id', adminToken,async (req: IsAdminRequest, res) => {
+    .get('/one/:id', adminToken,async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()
 
@@ -49,12 +47,28 @@ adminCategory
         const category = await CategoryRecord.getOne(id);
         isNull(category, null,'category does not exists')
 
-        res.json({
-            category,
-        })
+        res.json(
+            category as CategoryEntity
+        )
+    })
+    .post('/', adminToken,async (req: IsAdminRequest, res) => {
+        const { body: {name} } : {
+            body: SetCategoryForCategoryReq
+        } = req
+
+        if (!req.isAdmin) throw new AuthInvalidError()
+
+        const category = await CategoryRecord.getOneByName(name);
+        isNotNull(category, null,'category with this name already exists')
+
+        const newCategory = new CategoryRecord(req.body as CreateCategoryReq);
+        await newCategory.insert();
+
+        res.json(newCategory as CategoryEntity);
     })
 
-    .patch('/category', adminToken,async (req: IsAdminRequest, res) => {
+    .patch('/', adminToken,async (req: IsAdminRequest, res) => {
+
         const { body: {name, id} } : {
             body: UpdateCategoryForCategoryReq
         } = req
@@ -75,10 +89,10 @@ adminCategory
         category.name = name;
         await category.update();
 
-        res.json(category)
+        res.json(category as CategoryEntity)
     })
 
-    .delete('/category', adminToken, async (req: IsAdminRequest, res) => {
+    .delete('/', adminToken, async (req: IsAdminRequest, res) => {
         const { body: { id } } : {
             body: DeleteItemInBasketRequest
         } = req

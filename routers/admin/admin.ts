@@ -7,7 +7,8 @@ import { ValidationError} from "../../utils/errors";
 export const adminRouter = Router();
 
 adminRouter
-    .post('/login', async (req, res) => {
+    .post('/login',
+        async (req, res) => {
         const { body: {login, password} } : { body: AdminLoginRequest } = req
         exists(login, 'admin login')
         isTypeOf(login, 'string', 'login')
