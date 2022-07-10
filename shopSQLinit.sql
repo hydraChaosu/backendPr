@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS `basketelements` (
 CREATE TABLE IF NOT EXISTS `categories` (
   `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
   `name` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Eksport danych został odznaczony.
@@ -48,7 +49,7 @@ CREATE TABLE IF NOT EXISTS `personalinfo` (
   `buildingNumber` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT '',
   `postalCode` varchar(6) COLLATE utf8mb4_unicode_ci DEFAULT '',
   PRIMARY KEY (`id`),
-  KEY `FK_personalinfo_users` (`userId`),
+  UNIQUE KEY `userId` (`userId`),
   CONSTRAINT `FK_personalinfo_users` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -63,6 +64,7 @@ CREATE TABLE IF NOT EXISTS `shopitems` (
   `price` decimal(10,2) NOT NULL DEFAULT 0.00,
   `categoryId` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
   PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`),
   KEY `FK_shopitems_categories` (`categoryId`),
   CONSTRAINT `FK_shopitems_categories` FOREIGN KEY (`categoryId`) REFERENCES `categories` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -75,7 +77,9 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
   `login` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
   `password` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `login` (`login`),
+  UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Eksport danych został odznaczony.
