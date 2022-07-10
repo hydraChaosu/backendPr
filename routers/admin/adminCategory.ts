@@ -20,9 +20,7 @@ adminCategoryRouter
 
         const categoryList = await CategoryRecord.listAll();
 
-        res.json(
-            categoryList as CategoryEntity[]
-        )
+        res.json(categoryList as CategoryEntity[])
     })
 
     .get('/:name',adminToken, async (req: IsAdminRequest, res) => {
@@ -47,9 +45,7 @@ adminCategoryRouter
         const category = await CategoryRecord.getOne(id);
         isNull(category, null,'category does not exists')
 
-        res.json(
-            category as CategoryEntity
-        )
+        res.json(category as CategoryEntity)
     })
     .post('/', adminToken,async (req: IsAdminRequest, res) => {
         const { body: {name} } : {

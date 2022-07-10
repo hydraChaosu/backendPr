@@ -9,7 +9,9 @@ export const adminRouter = Router();
 adminRouter
     .post('/login',
         async (req, res) => {
+
         const { body: {login, password} } : { body: AdminLoginRequest } = req
+
         exists(login, 'admin login')
         isTypeOf(login, 'string', 'login')
         exists(password, 'admin password')
@@ -24,6 +26,7 @@ adminRouter
         }
 
         const token = generateAdminAccessToken( {id: process.env.ADMIN_ID} )
+
         res.json({token});
     })
     .post('/logout', async (req, res) => {

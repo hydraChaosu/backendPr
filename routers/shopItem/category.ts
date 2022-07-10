@@ -8,11 +8,10 @@ export const categoryRouter = Router();
 categoryRouter
 
     .get('/all', async (req, res) => {
-        const categoryList = await CategoryRecord.listAll();
 
-        res.json(
-            categoryList as CategoryEntity[]
-        )
+        const categoryList = await CategoryRecord.listAll();
+        res.json(categoryList as CategoryEntity[])
+
     })
     .get('/one/:id', async (req, res) => {
 
@@ -21,7 +20,5 @@ categoryRouter
         const category = await CategoryRecord.getOne(id);
         isNull(category, null,'category does not exists')
 
-        res.json(
-            category as CategoryEntity
-        )
+        res.json(category as CategoryEntity)
     })
