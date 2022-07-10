@@ -1,6 +1,13 @@
 import express from "express"
 import 'express-async-errors';
-import {itemInBasketRouter, personalInfoRouter, shopItemRouter, userRouter} from "./routers";
+import {
+    adminCategoryRouter,
+    adminRouter, adminShopItemRouter,
+    itemInBasketRouter,
+    personalInfoRouter,
+    shopItemRouter,
+    userRouter
+} from "./routers";
 import {categoryRouter} from "./routers";
 import cors from "cors";
 import {handleError} from "./utils/errors";
@@ -17,6 +24,9 @@ app.use('/shopItem', shopItemRouter);
 app.use('/personalInfo', personalInfoRouter);
 app.use('/itemInBasket', itemInBasketRouter);
 app.use('/user', userRouter);
+app.use('/admin', adminRouter);
+app.use('/admin/category', adminCategoryRouter);
+app.use('/admin/shopItem', adminShopItemRouter)
 
 app.use(handleError)
 
@@ -24,12 +34,23 @@ app.listen(3001, '0.0.0.0', () => {
     console.log('Listening on http://localhost:3001');
 });
 
-// test all
+//shopitem
+//user
+//personal info
+//basketinitems
+
 // export tests
 // readme
-// normalne testy
-// wiecej destrukturyacjia check quantity itp jako oddzielne funkcje
-// statystyki recordow
-//test all v2
 
-//passport
+// normalne testy
+
+// statystyki recordow
+
+//eslint
+
+//prettier
+
+//TODO express validator
+//TODO passport
+
+//react
