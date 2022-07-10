@@ -19,17 +19,15 @@ export const adminUserRouter = Router();
 
 adminUserRouter
 
-    .get('/user/all', adminToken,async (req: IsAdminRequest, res) => {
+    .get('/all', adminToken,async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()
 
         const userList = await UserRecord.listAll();
 
-        res.json({
-            userList,
-        })
+        res.json(userList as UserEntity[])
     })
-    .get('/user/one/:id', adminToken, async (req: IsAdminRequest, res) => {
+    .get('/one/:id', adminToken, async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()
 
@@ -39,11 +37,9 @@ adminUserRouter
         const user = await UserRecord.getOne(id);
         isNull(user, null,'user does not exists')
 
-        res.json({
-            user,
-        })
+        res.json(user)
     })
-    .post('/user/register', adminToken, async (req: IsAdminRequest, res) => {
+    .post('/register', adminToken, async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()
 
@@ -89,7 +85,7 @@ adminUserRouter
 
         res.json(user as UserEntity);
     })
-    .post('/user/login',adminToken, async (req: IsAdminRequest, res) => {
+    .post('/login',adminToken, async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()
 
@@ -108,7 +104,7 @@ adminUserRouter
     })
 
 
-    .patch('/user', adminToken, async (req: IsAdminRequest, res) => {
+    .patch('/', adminToken, async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()
 
@@ -116,7 +112,7 @@ adminUserRouter
             body: AdminSetUserCategoryReq
         } = req
 
-        exists(body.id, 'user id param')
+        exists(body.id, 'user id')
         const user = await UserRecord.getOne(body.id);
         isNull(user, null,'user does not exists')
 
@@ -156,10 +152,10 @@ adminUserRouter
 
         await user.update();
 
-        res.json(user)
+        res.json(user as UserEntity)
     })
 
-    .delete('/user', adminToken,async (req: IsAdminRequest, res) => {
+    .delete('/', adminToken,async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()
 
@@ -167,7 +163,7 @@ adminUserRouter
             body: DeleteOneUserReq
         } = req
 
-        exists(id, 'user id param')
+        exists(id, 'user id')
         const user = await UserRecord.getOne(id);
         isNull(user, null,'No user found for this ID.')
 

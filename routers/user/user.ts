@@ -25,9 +25,7 @@ userRouter
 
         if (user.id !== reqUserId) throw new AuthInvalidError()
 
-        res.json({
-            user,
-        })
+        res.json(user as UserEntity)
     })
     .post('/register', async (req: UserAuthReq, res) => {
         const { body } : {
@@ -153,7 +151,7 @@ userRouter
 
         await user.update();
 
-        res.json(user)
+        res.json(user as UserEntity)
     })
 
     .delete('/', authenticateToken, async (req: UserAuthReq, res) => {
