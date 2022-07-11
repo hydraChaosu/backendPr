@@ -19,7 +19,7 @@ adminShopItemRouter
 
         const shopItemList = await ShopItemRecord.listAll();
 
-        res.json(shopItemList)
+        res.json(shopItemList as ShopItemEntity[])
     })
     .get('/all/category/:categoryId',adminToken, async (req: IsAdminRequest, res) => {
 
@@ -32,7 +32,7 @@ adminShopItemRouter
         isNull(category, null,'category does not exists')
         const shopItemList = await ShopItemRecord.listAllByCategory(categoryId);
 
-        res.json(shopItemList)
+        res.json(shopItemList as ShopItemEntity[])
     })
     .get('/all/name/:name', adminToken,async (req: IsAdminRequest, res) => {
 
@@ -44,7 +44,7 @@ adminShopItemRouter
         const shopItemList = await ShopItemRecord.getOneByName(name);
         isNull(shopItemList, null,'shopItemList does not exists')
 
-        res.json(shopItemList)
+        res.json(shopItemList as ShopItemEntity[])
     })
     .get('/one/:id',adminToken, async (req: IsAdminRequest, res) => {
 
@@ -56,7 +56,7 @@ adminShopItemRouter
         const shopItem = await ShopItemRecord.getOne(id);
         isNull(shopItem, null,'shopItem does not exists')
 
-        res.json(shopItem)
+        res.json(shopItem as ShopItemEntity)
     })
     .post('/',adminToken, async (req: IsAdminRequest, res) => {
         let { body: {categoryId, name, quantity, price, img} } : {
@@ -134,7 +134,7 @@ adminShopItemRouter
 
         await shopItem.update();
 
-        res.json(shopItem)
+        res.json(shopItem as ShopItemEntity)
     })
 
     .delete('/', adminToken,async (req: IsAdminRequest, res) => {

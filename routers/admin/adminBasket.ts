@@ -13,9 +13,9 @@ import {exists, isBetween, isNull, isTypeOf} from "../../utils/dataCheck";
 import {ItemInBasketRecord, ShopItemRecord, UserRecord} from "../../records";
 import {ItemInBasketCreateReq} from "../../types";
 
-export const adminBasket = Router();
+export const adminItemInBasketRouter = Router();
 
-adminBasket
+adminItemInBasketRouter
     .get('/itemInBasket/all', adminToken,async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()

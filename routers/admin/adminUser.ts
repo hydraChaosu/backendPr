@@ -37,7 +37,7 @@ adminUserRouter
         const user = await UserRecord.getOne(id);
         isNull(user, null,'user does not exists')
 
-        res.json(user)
+        res.json(user as UserEntity)
     })
     .post('/register', adminToken, async (req: IsAdminRequest, res) => {
 
