@@ -55,7 +55,7 @@ export class ItemInBasketRecord implements ItemInBasketEntity {
     }
 
     async updateFull() : Promise<void> {
-        await pool.execute("UPDATE `basketelements` SET `quantity` = :quantity, `shopItemId` =: shopItemId, `userId` =: userId WHERE `id` = :id", {
+        await pool.execute("UPDATE `basketelements` SET `quantity` = :quantity, `shopItemId` = :shopItemId, `userId` = :userId WHERE `id` = :id", {
             id: this.id,
             quantity: this.quantity,
             shopItemId: this.shopItemId,
@@ -93,6 +93,12 @@ export class ItemInBasketRecord implements ItemInBasketEntity {
             id,
         })) as ItemInBasketRecordResults;
         return results.length === 0 ? null : new ItemInBasketRecord(results[0]);
+    }
+
+    static async deleteAllItemsForUser(userId: string) : Promise<void> {
+        await pool.execute("DELETE FROM `basketelements` WHERE  `userId` = :userId", {
+            userId,
+        })
     }
 
 }

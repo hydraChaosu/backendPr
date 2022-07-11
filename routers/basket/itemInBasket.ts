@@ -13,7 +13,7 @@ export const itemInBasketRouter = Router();
 
 itemInBasketRouter
 
-    .get('/all/user', authenticateToken, async (req: UserAuthReq, res) => {
+    .get('/all', authenticateToken, async (req: UserAuthReq, res) => {
 
         const { id: reqUserId } = req.user
         if (!reqUserId) throw new InvalidTokenError()
@@ -24,9 +24,7 @@ itemInBasketRouter
         isNull(user, null,'user does not exists')
         const itemsInBasketList = await ItemInBasketRecord.listAllItemsForUser(reqUserId);
 
-        res.json({
-            itemsInBasketList,
-        })
+        res.json(itemsInBasketList as ItemInBasketEntity[])
     })
     .get('/one/:id',authenticateToken, async (req: UserAuthReq, res) => {
 
@@ -41,14 +39,12 @@ itemInBasketRouter
 
         exists(id, 'item id')
         isTypeOf(id, 'string', 'item id')
-        const itemInBasketList = await ItemInBasketRecord.getOne(id);
-        isNull(itemInBasketList, null,'Item does not exists')
+        const itemInBasket = await ItemInBasketRecord.getOne(id);
+        isNull(itemInBasket, null,'Item does not exists')
 
-        if (itemInBasketList.userId !== reqUserId) throw new AuthInvalidError()
+        if (itemInBasket.userId !== reqUserId) throw new AuthInvalidError()
 
-        res.json({
-            itemInBasketList,
-        })
+        res.json(itemInBasket as ItemInBasketEntity)
     })
     .post('/', authenticateToken,async (req: UserAuthReq, res) => {
         const { body: {shopItemId} } : {
@@ -98,7 +94,7 @@ itemInBasketRouter
         if (itemInBasket.userId !== reqUserId) throw new AuthInvalidError()
 
         await itemInBasket.update();
-        res.json(itemInBasket)
+        res.json(itemInBasket as ItemInBasketEntity)
     })
 
     .delete('/', authenticateToken, async (req: UserAuthReq, res) => {
@@ -115,5 +111,5 @@ itemInBasketRouter
         if (itemInBasket.userId !== reqUserId) throw new AuthInvalidError()
 
         await itemInBasket.delete();
-        res.json({message: "personal Info deleted successfully."})
+        res.json({message: "item deleted successfully."})
     });
