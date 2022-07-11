@@ -1,9 +1,9 @@
 import {Router} from "express";
-import {PersonalInfoRecord, UserRecord} from "../../records";
+import {ItemInBasketRecord, PersonalInfoRecord, ShopItemRecord, UserRecord} from "../../records";
 import {exists, isBetween, isNull, isTypeOf} from "../../utils/dataCheck";
 import { PersonalInfoCreateReq, UserAuthReq, UserEntity} from "../../types";
 import {CreateUserReq, LoginUserReq, SetUserCategoryReq} from "../../types";
-import {AuthInvalidError, InvalidTokenError, ValidationError} from "../../utils/errors";
+import {AuthInvalidError, ImpossibleShopRequestError, InvalidTokenError, ValidationError} from "../../utils/errors";
 import {generateAccessToken} from "../../utils/generateToken";
 import {authenticateToken} from '../../middleware/auth'
 const bcrypt = require('bcrypt');
@@ -13,7 +13,7 @@ export const userRouter = Router();
 
 userRouter
 
-    .get('/one', authenticateToken, async (req: UserAuthReq, res) => {
+    .get('/', authenticateToken, async (req: UserAuthReq, res) => {
 
         const { id: reqUserId } = req.user
         if (!reqUserId) throw new InvalidTokenError()
@@ -101,8 +101,42 @@ userRouter
         }
 
     })
+    .get('/buy', authenticateToken, async (req: UserAuthReq, res) => {
 
+        const { id: reqUserId } = req.user
+        if (!reqUserId) throw new InvalidTokenError()
 
+        exists(reqUserId, 'user Id param')
+        isTypeOf(reqUserId, 'string', 'user id')
+        const user = await UserRecord.getOne(reqUserId);
+        isNull(user, null,'user does not exists')
+        const itemsInBasketList = await ItemInBasketRecord.listAllItemsForUser(reqUserId);
+
+        if (itemsInBasketList.length === 0) throw new ImpossibleShopRequestError('the basket is empty')
+
+        for (const item of itemsInBasketList) {
+
+            const shopItem = await ShopItemRecord.getOne(item.shopItemId);
+            isNull(shopItem, null,'shopItem does not exists')
+
+            if (item.quantity > shopItem.quantity) {
+                throw new ImpossibleShopRequestError(`not enough of ${shopItem.name} quantity in shop`)
+            }
+        }
+
+        for (const item of itemsInBasketList) {
+
+            const shopItem = await ShopItemRecord.getOne(item.shopItemId);
+            isNull(shopItem, null,'shopItem does not exists')
+            shopItem.quantity = shopItem.quantity - item.quantity
+            await shopItem.update()
+        }
+
+        await ItemInBasketRecord.deleteAllItemsForUser(reqUserId)
+
+        res.json({message: 'Success'})
+
+    })
     .patch('/',authenticateToken, async (req: UserAuthReq, res) => {
         const { body } : {
             body: SetUserCategoryReq

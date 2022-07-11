@@ -1,6 +1,7 @@
 import {Router} from "express";
 import {CategoryRecord, ShopItemRecord} from "../../records";
 import {exists, isNull} from "../../utils/dataCheck";
+import {ShopItemEntity} from "../../types";
 
 export const shopItemRouter = Router();
 
@@ -9,7 +10,7 @@ shopItemRouter
     .get('/all', async (req, res) => {
 
         const shopItemList = await ShopItemRecord.listAll();
-        res.json(shopItemList)
+        res.json(shopItemList as ShopItemEntity[])
 
     })
     .get('/category/:categoryId', async (req, res) => {
@@ -21,7 +22,7 @@ shopItemRouter
         isNull(category, null,'category does not exists')
         const shopItemList = await ShopItemRecord.listAllByCategory(categoryId);
 
-        res.json(shopItemList)
+        res.json(shopItemList as ShopItemEntity[])
     })
     .get('/name/:name', async (req, res) => {
 
@@ -31,7 +32,7 @@ shopItemRouter
         const shopItemList = await ShopItemRecord.getOneByName(name);
         isNull(shopItemList, null,'shopItemList does not exists')
 
-        res.json(shopItemList)
+        res.json(shopItemList as ShopItemEntity[])
     })
     .get('/one/:id', async (req, res) => {
 
@@ -41,5 +42,5 @@ shopItemRouter
         const shopItem = await ShopItemRecord.getOne(id);
         isNull(shopItem, null,'shopItem does not exists')
 
-        res.json(shopItem)
+        res.json(shopItem as ShopItemEntity)
     })
