@@ -1,6 +1,6 @@
 import {Router} from "express";
 import {PersonalInfoRecord} from "../../records";
-import { UserAuthReq} from "../../types";
+import {PersonalInfoEntity, UserAuthReq} from "../../types";
 import { isNull, isSmaller, isTypeOf} from "../../utils/dataCheck";
 import {SetPersonalInfoReq} from "../../types";
 import {authenticateToken} from "../../middleware/auth";
@@ -9,19 +9,17 @@ export const personalInfoRouter = Router();
 
 personalInfoRouter
 
-    .get('/one', authenticateToken,async (req: UserAuthReq, res) => {
+    .get('/', authenticateToken,async (req: UserAuthReq, res) => {
 
         const { id: reqUserId } = req.user
         if (!reqUserId) throw new InvalidTokenError()
 
-        const personalInfo = await PersonalInfoRecord.getOne(reqUserId);
+        const personalInfo = await PersonalInfoRecord.getUserInfo(reqUserId);
         isNull(personalInfo, null,'personalInfo does not exists')
 
         if (personalInfo.userId !== reqUserId) throw new AuthInvalidError()
 
-        res.json({
-            personalInfo,
-        })
+        res.json(personalInfo as PersonalInfoEntity)
     })
        .patch('/',authenticateToken, async (req: UserAuthReq, res) => {
         const { body } : {
@@ -78,16 +76,5 @@ personalInfoRouter
 
         await personalInfo.update();
 
-        res.json(personalInfo)
+        res.json(personalInfo as PersonalInfoEntity)
     })
-
-    .delete('/', authenticateToken,async (req: UserAuthReq, res) => {
-        const { id: reqUserId } = req.user
-        if (!reqUserId) throw new InvalidTokenError()
-
-        const personalInfo = await PersonalInfoRecord.getUserInfo(reqUserId);
-        isNull(personalInfo, null,'No personalInfo found for this ID.')
-
-        await personalInfo.delete();
-        res.json({message: "personal Info deleted successfully."})
-    });

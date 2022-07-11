@@ -14,17 +14,15 @@ export const adminPersonalInfoRouter = Router();
 
 adminPersonalInfoRouter
 
-    .get('/personalInfo/all', adminToken,async (req: IsAdminRequest, res) => {
+    .get('/all', adminToken,async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()
 
         const personalInfoList = await PersonalInfoRecord.listAll();
 
-        res.json({
-            personalInfoList,
-        })
+        res.json(personalInfoList as PersonalInfoEntity[])
     })
-    .get('/personalInfo/one/:id', adminToken, async (req: IsAdminRequest, res) => {
+    .get('/one/:id', adminToken, async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()
 
@@ -32,11 +30,9 @@ adminPersonalInfoRouter
         const personalInfo = await PersonalInfoRecord.getOne(req.params.id);
         isNull(personalInfo, null,'shopItem does not exists')
 
-        res.json({
-            personalInfo,
-        })
+        res.json(personalInfo as PersonalInfoEntity)
     })
-    .post('/personalInfo', adminToken,async (req: IsAdminRequest, res) => {
+    .post('/', adminToken,async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()
 
@@ -104,11 +100,10 @@ adminPersonalInfoRouter
         const newPersonalInfo = new PersonalInfoRecord(req.body as PersonalInfoCreateReq);
         await newPersonalInfo.insert();
 
-
         res.json(newPersonalInfo as PersonalInfoEntity);
     })
 
-    .patch('/personalInfo', adminToken,async (req: IsAdminRequest, res) => {
+    .patch('/', adminToken,async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()
 
@@ -121,8 +116,7 @@ adminPersonalInfoRouter
         const user = await UserRecord.getOne(body.userId);
         isNull(user, null,'user does not exists')
 
-        exists(req.params.personalInfoId, 'personal Info Id param')
-        const personalInfo = await PersonalInfoRecord.getUserInfo(body.userId);
+        const personalInfo = await PersonalInfoRecord.getUserInfo(user.id);
         isNull(personalInfo, null,'Personal Info does not exists')
 
         if (body.name) {
@@ -169,10 +163,10 @@ adminPersonalInfoRouter
 
         await personalInfo.update();
 
-        res.json(personalInfo)
+        res.json(personalInfo as PersonalInfoEntity)
     })
 
-    .delete('/personalInfo', adminToken,async (req: IsAdminRequest, res) => {
+    .delete('/', adminToken,async (req: IsAdminRequest, res) => {
 
         if (!req.isAdmin) throw new AuthInvalidError()
 
@@ -181,7 +175,7 @@ adminPersonalInfoRouter
         } = req
 
 
-        exists(body.id, 'shop item id param')
+        exists(body.id, 'personal id')
         const personalInfo = await PersonalInfoRecord.getOne(body.id);
 
         isNull(personalInfo, null,'No personalInfo found for this ID.')
