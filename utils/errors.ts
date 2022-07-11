@@ -5,6 +5,7 @@ export class NotFoundError extends Error {}
 export class AuthInvalidError extends Error {}
 export class TokenError extends Error {}
 export class InvalidTokenError extends Error {}
+export class ImpossibleShopRequestError extends Error {}
 
 export const handleError = (err: Error, req: Request, res: Response, next: NextFunction) : void=> {
 
@@ -43,6 +44,15 @@ export const handleError = (err: Error, req: Request, res: Response, next: NextF
             .status(403)
             .json( {
                 message: 'InvalidTokenError',
+            });
+        return;
+    }
+
+    if (err instanceof ImpossibleShopRequestError) {
+        res
+            .status(400)
+            .json( {
+                message: err.message,
             });
         return;
     }

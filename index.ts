@@ -1,7 +1,7 @@
 import express from "express"
 import 'express-async-errors';
 import {
-    adminCategoryRouter,
+    adminCategoryRouter, adminItemInBasketRouter,
     adminRouter, adminShopItemRouter,
     itemInBasketRouter,
     personalInfoRouter,
@@ -13,6 +13,7 @@ import cors from "cors";
 import {handleError} from "./utils/errors";
 import 'dotenv/config'
 import { adminUserRouter } from "./routers/admin/adminUser";
+import { adminPersonalInfoRouter } from "./routers/admin/adminPersonalInfo";
 const app = express();
 
 app.use(cors({
@@ -29,6 +30,8 @@ app.use('/admin', adminRouter);
 app.use('/admin/category', adminCategoryRouter);
 app.use('/admin/shopItem', adminShopItemRouter)
 app.use('/admin/user', adminUserRouter);
+app.use('/admin/personalInfo', adminPersonalInfoRouter)
+app.use('/admin/itemInBasket', adminItemInBasketRouter);
 
 app.use(handleError)
 
@@ -36,24 +39,26 @@ app.listen(3001, '0.0.0.0', () => {
     console.log('Listening on http://localhost:3001');
 });
 
-//buyshopitems in user , check quantity of items if ok, remove basket items and decrease their quantity
-//personal info
+//PN
 //basketinitems
 // export tests
 
+//more response info
+
+//WT
 // readme
-
-// normalne testy
-
-// statystyki recordowin
-
+//prettier
 //eslint
 
-//prettier
+//SR
+// normalne testy
+
+//CZ
+//send proj
+// statystyki recordow
 
 //TODO express validator
 //TODO passport
-
 //wlasne validatory szczegolowe
 
 //react
@@ -62,3 +67,11 @@ app.listen(3001, '0.0.0.0', () => {
 
 //tokens in db
 //cashe in db
+
+//logout
+
+//refresh token
+
+//payload standarization
+
+//nest
