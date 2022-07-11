@@ -120,7 +120,12 @@ userRouter
             isNull(shopItem, null,'shopItem does not exists')
 
             if (item.quantity > shopItem.quantity) {
-                throw new ImpossibleShopRequestError(`not enough of ${shopItem.name} quantity in shop`)
+                if (shopItem.quantity === 0) {
+                    await item.delete()
+                }
+                item.quantity = shopItem.quantity
+                await item.update()
+                throw new ImpossibleShopRequestError(`not enough of ${shopItem.name} quantity in shop and set to max val or deleted`)
             }
         }
 
