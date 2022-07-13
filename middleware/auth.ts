@@ -12,9 +12,13 @@ export function authenticateToken(
 ) {
   const authHeader = req.headers["authorization"];
 
-  const token = authHeader && authHeader.split(" ")[0];
+  let token = null;
 
-  if (token == null) {
+  if (typeof authHeader === "string") {
+    token = authHeader;
+  }
+
+  if (token === null) {
     throw new TokenError();
   }
 
@@ -43,10 +47,10 @@ export function adminToken(
   let token = null;
 
   if (typeof authHeader === "string") {
-    token = authHeader && authHeader.split(" ")[0];
+    token = authHeader;
   }
 
-  if (token == null) {
+  if (token === null) {
     throw new TokenError();
   }
 
