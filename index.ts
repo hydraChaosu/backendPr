@@ -39,14 +39,8 @@ app.listen(3001, '0.0.0.0', () => {
     console.log('Listening on http://localhost:3001');
 });
 
-//PN
-//basketinitems
-// export tests
-
-//more response info
-
 //WT
-// readme
+//readme
 //prettier
 //eslint
 
@@ -57,21 +51,17 @@ app.listen(3001, '0.0.0.0', () => {
 //send proj
 // statystyki recordow
 
-//TODO express validator
-//TODO passport
-//wlasne validatory szczegolowe
-
 //react
-
+//payload standarization
 //catch mysql2 errors
-
 //tokens in db
 //cashe in db
-
 //logout
-
 //refresh token
 
-//payload standarization
+//TODO express validator
+//TODO passport
 
+//wlasne validatory szczegolowe
 //nest
+//angielski w db
