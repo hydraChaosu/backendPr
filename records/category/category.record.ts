@@ -1,72 +1,80 @@
-import {pool} from "../../utils/db";
-import {v4 as uuid} from 'uuid';
-import {FieldPacket} from "mysql2";
-import {CategoryEntity} from "../../types";
-import {exists, isBetweenEqual} from "../../utils/dataCheck";
+import { pool } from "../../utils/db";
+import { v4 as uuid } from "uuid";
+import { FieldPacket } from "mysql2";
+import { CategoryEntity } from "../../types";
+import { exists, isBetweenEqual } from "../../utils/dataCheck";
 
-type CategoryRecordResults = [CategoryEntity[], FieldPacket[]]
-const errorInfoName = 'category'
+type CategoryRecordResults = [CategoryEntity[], FieldPacket[]];
+const errorInfoName = "category";
 
-export class CategoryRecord implements CategoryEntity{
+export class CategoryRecord implements CategoryEntity {
+  id?: string;
+  name: string;
 
-    id?: string;
-    name: string;
+  constructor(obj: CategoryEntity) {
+    exists(obj.name);
+    isBetweenEqual(obj.name.length, 3, 20, errorInfoName);
 
-    constructor(obj: CategoryEntity) {
+    this.id = obj.id;
+    this.name = obj.name;
+  }
 
-        exists(obj.name)
-        isBetweenEqual(obj.name.length, 3, 20, errorInfoName)
-
-        this.id = obj.id;
-        this.name = obj.name;
+  async insert(): Promise<string> {
+    if (!this.id) {
+      this.id = uuid();
     }
 
+    await pool.execute(
+      "INSERT INTO `categories`(`id`, `name`) VALUES(:id, :name)",
+      {
+        id: this.id,
+        name: this.name,
+      }
+    );
 
+    return this.id;
+  }
 
-    async insert(): Promise<string> {
-        if (!this.id) {
-            this.id = uuid();
-        }
+  async update(): Promise<void> {
+    await pool.execute(
+      "UPDATE `categories` SET `name` = :name WHERE `id` = :id",
+      {
+        id: this.id,
+        name: this.name,
+      }
+    );
+  }
 
-        await pool.execute("INSERT INTO `categories`(`id`, `name`) VALUES(:id, :name)", {
-            id: this.id,
-            name: this.name
-        });
+  async delete(): Promise<void> {
+    await pool.execute("DELETE FROM `categories` WHERE `id` = :id", {
+      id: this.id,
+    });
+  }
 
-        return this.id;
-    }
+  static async listAll(): Promise<CategoryRecord[]> {
+    const [results] = (await pool.execute(
+      "SELECT * FROM `categories` ORDER BY `name`"
+    )) as CategoryRecordResults;
+    return results.map((obj) => new CategoryRecord(obj));
+  }
 
-    async update() : Promise<void> {
+  static async getOne(id: string): Promise<CategoryRecord | null> {
+    const [results] = (await pool.execute(
+      "SELECT * FROM `categories` WHERE `id` = :id",
+      {
+        id,
+      }
+    )) as CategoryRecordResults;
+    return results.length === 0 ? null : new CategoryRecord(results[0]);
+  }
 
-        await pool.execute("UPDATE `categories` SET `name` = :name WHERE `id` = :id", {
-            id: this.id,
-            name: this.name
-        });
-    }
-
-    async delete() : Promise<void> {
-        await pool.execute("DELETE FROM `categories` WHERE `id` = :id", {
-            id: this.id
-        })
-    }
-
-    static async listAll(): Promise<CategoryRecord[]> {
-        const [results] = (await pool.execute("SELECT * FROM `categories` ORDER BY `name` ASC")) as CategoryRecordResults;
-        return results.map(obj => new CategoryRecord(obj));
-    }
-
-    static async getOne(id: string): Promise<CategoryRecord | null> {
-        const [results] = (await pool.execute("SELECT * FROM `categories` WHERE `id` = :id", {
-            id,
-        })) as CategoryRecordResults;
-        return results.length === 0 ? null : new CategoryRecord(results[0]);
-    }
-
-    static async getOneByName(name: string): Promise<CategoryRecord | null> {
-        const [results] = (await pool.execute("SELECT * FROM `categories` WHERE `name` = :name", {
-            name,
-        })) as CategoryRecordResults;
-        return results.length === 0 ? null : new CategoryRecord(results[0]);
-    }
-
+  static async getOneByName(name: string): Promise<CategoryRecord | null> {
+    const [results] = (await pool.execute(
+      "SELECT * FROM `categories` WHERE `name` = :name",
+      {
+        name,
+      }
+    )) as CategoryRecordResults;
+    return results.length === 0 ? null : new CategoryRecord(results[0]);
+  }
 }

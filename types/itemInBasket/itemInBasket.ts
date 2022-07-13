@@ -1,40 +1,40 @@
 import { ItemInBasketEntity } from "./itemInBasket.entity";
 
-export type ItemInBasketCreateReq = Omit<ItemInBasketEntity, 'id'>;
+export type ItemInBasketCreateReq = Omit<ItemInBasketEntity, "id">;
 
 export interface SetItemInBasketReq {
-    quantity: number;
-    id: string;
+  quantity: number;
+  id: string;
 }
 
 export interface GetItemInBasketRequest {
-    id: string,
+  id: string;
 }
 
 export interface DeleteItemInBasketRequest {
-    id: string,
+  id: string;
 }
 
 export interface AllItemsInBasketUserRequest {
-    userId: string,
+  userId: string;
 }
 
 export interface AllItemsInBasketByTypeRequest {
-    shopItemId: string;
+  shopItemId: string;
 }
 
 export interface GetOneItemInBasketRequest {
-    itemId: string;
+  itemId: string;
 }
 
 export interface AddItemToUserItemInBasketRequest {
-    shopItemId: string;
-    userId: string
+  shopItemId: string;
+  userId: string;
 }
 
 export interface EditItemInBasketRequest {
-    shopItemId?: string;
-    userId?: string;
-    id: string;
-    quantity: number;
+  shopItemId?: string;
+  userId?: string;
+  id: string;
+  quantity: number;
 }

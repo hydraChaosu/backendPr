@@ -1,2 +1,2 @@
-export * from './category.entity'
-export * from './category'
+export * from "./category.entity";
+export * from "./category";

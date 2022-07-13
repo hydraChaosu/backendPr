@@ -1,3 +1,3 @@
-import {PersonalInfoRecord} from "./personalInfo.record";
+import { PersonalInfoRecord } from "./personalInfo.record";
 
-export {PersonalInfoRecord} from './personalInfo.record'
+export { PersonalInfoRecord } from "./personalInfo.record";

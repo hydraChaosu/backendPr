@@ -1,105 +1,114 @@
-import {Router} from "express";
-import {adminToken} from "../../middleware/auth";
+import { Router } from "express";
+import { adminToken } from "../../middleware/auth";
 import {
-    CategoryEntity,
-    CreateCategoryReq,
-    IsAdminRequest, SetCategoryForCategoryReq,
-    UpdateCategoryForCategoryReq
+  CategoryEntity,
+  CreateCategoryReq,
+  IsAdminRequest,
+  SetCategoryForCategoryReq,
+  UpdateCategoryForCategoryReq,
 } from "../../types";
-import {AuthInvalidError} from "../../utils/errors";
-import {exists, isBetweenEqual, isNotNull, isNull, isTypeOf} from "../../utils/dataCheck";
-import {CategoryRecord} from "../../records";
-import {DeleteItemInBasketRequest} from "../../types";
+import { AuthInvalidError } from "../../utils/errors";
+import {
+  exists,
+  isBetweenEqual,
+  isNotNull,
+  isNull,
+  isTypeOf,
+} from "../../utils/dataCheck";
+import { CategoryRecord } from "../../records";
+import { DeleteItemInBasketRequest } from "../../types";
 
 export const adminCategoryRouter = Router();
 
 adminCategoryRouter
-    .get('/all', adminToken,async (req:IsAdminRequest, res) => {
+  .get("/all", adminToken, async (req: IsAdminRequest, res) => {
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    const categoryList = await CategoryRecord.listAll();
 
-        const categoryList = await CategoryRecord.listAll();
+    res.json(categoryList as CategoryEntity[]);
+  })
 
-        res.json(categoryList as CategoryEntity[])
-    })
+  .get("/:name", adminToken, async (req: IsAdminRequest, res) => {
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-    .get('/:name',adminToken, async (req: IsAdminRequest, res) => {
+    const { name } = req.params;
+    exists(name, "name param");
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    const category = await CategoryRecord.getOneByName(name);
+    isNull(category, null, "category does not exists");
 
-        const {name} = req.params;
-        exists(name, 'name param')
+    res.json(category as CategoryEntity);
+  })
+  .get("/one/:id", adminToken, async (req: IsAdminRequest, res) => {
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        const category = await CategoryRecord.getOneByName(name);
-        isNull(category, null,'category does not exists')
+    const { id } = req.params;
+    exists(id, "id param");
 
-        res.json(category as CategoryEntity);
-    })
-    .get('/one/:id', adminToken,async (req: IsAdminRequest, res) => {
+    const category = await CategoryRecord.getOne(id);
+    isNull(category, null, "category does not exists");
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    res.json(category as CategoryEntity);
+  })
+  .post("/", adminToken, async (req: IsAdminRequest, res) => {
+    const {
+      body: { name },
+    }: {
+      body: SetCategoryForCategoryReq;
+    } = req;
 
-        const {id} = req.params;
-        exists(id, 'id param')
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        const category = await CategoryRecord.getOne(id);
-        isNull(category, null,'category does not exists')
+    const category = await CategoryRecord.getOneByName(name);
+    isNotNull(category, null, "category with this name already exists");
 
-        res.json(category as CategoryEntity)
-    })
-    .post('/', adminToken,async (req: IsAdminRequest, res) => {
-        const { body: {name} } : {
-            body: SetCategoryForCategoryReq
-        } = req
+    const newCategory = new CategoryRecord(req.body as CreateCategoryReq);
+    await newCategory.insert();
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    res.json(newCategory as CategoryEntity);
+  })
 
-        const category = await CategoryRecord.getOneByName(name);
-        isNotNull(category, null,'category with this name already exists')
+  .patch("/", adminToken, async (req: IsAdminRequest, res) => {
+    const {
+      body: { name, id },
+    }: {
+      body: UpdateCategoryForCategoryReq;
+    } = req;
 
-        const newCategory = new CategoryRecord(req.body as CreateCategoryReq);
-        await newCategory.insert();
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        res.json(newCategory as CategoryEntity);
-    })
+    exists(id, "category Id");
+    isTypeOf(id, "string", "category id");
+    const category = await CategoryRecord.getOne(id);
+    isNull(category, null, "No category found for this ID.");
 
-    .patch('/', adminToken,async (req: IsAdminRequest, res) => {
+    exists(name, "name");
+    isTypeOf(name, "string", "name");
+    const categoryName = await CategoryRecord.getOneByName(name);
+    isNotNull(categoryName, null, "category with this name already exists");
+    isBetweenEqual(name.length, 3, 20, "category");
 
-        const { body: {name, id} } : {
-            body: UpdateCategoryForCategoryReq
-        } = req
+    category.name = name;
+    await category.update();
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    res.json(category as CategoryEntity);
+  })
 
-        exists(id, 'category Id')
-        isTypeOf(id, 'string', 'category id')
-        const category = await CategoryRecord.getOne(id);
-        isNull(category, null,'No category found for this ID.')
+  .delete("/", adminToken, async (req: IsAdminRequest, res) => {
+    const {
+      body: { id },
+    }: {
+      body: DeleteItemInBasketRequest;
+    } = req;
 
-        exists(name, 'name')
-        isTypeOf(name, 'string', 'name')
-        const categoryName = await CategoryRecord.getOneByName(name);
-        isNotNull(categoryName, null,'category with this name already exists')
-        isBetweenEqual(name.length, 3, 20, 'category')
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        category.name = name;
-        await category.update();
+    exists(id, "category Id");
+    isTypeOf(id, "string", "category id");
+    const category = await CategoryRecord.getOne(id);
+    isNull(category, null, "No category found for this ID.");
 
-        res.json(category as CategoryEntity)
-    })
-
-    .delete('/', adminToken, async (req: IsAdminRequest, res) => {
-        const { body: { id } } : {
-            body: DeleteItemInBasketRequest
-        } = req
-
-        if (!req.isAdmin) throw new AuthInvalidError()
-
-        exists(id, 'category Id')
-        isTypeOf(id, 'string', 'category id')
-        const category = await CategoryRecord.getOne(id);
-        isNull(category, null,'No category found for this ID.')
-
-        await category.delete();
-        res.json({message: "Category deleted successfully."})
-    });
+    await category.delete();
+    res.json({ message: "Category deleted successfully." });
+  });

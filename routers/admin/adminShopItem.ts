@@ -1,156 +1,175 @@
-import {Router} from "express";
-import {adminToken} from "../../middleware/auth";
-import {CategoryRecord, ShopItemRecord} from "../../records";
-import {exists, isBetween, isBigger, isNotNull, isNull, isSmaller, isTypeOf} from "../../utils/dataCheck";
+import { Router } from "express";
+import { adminToken } from "../../middleware/auth";
+import { CategoryRecord, ShopItemRecord } from "../../records";
 import {
-    DeleteOneShopItemReq,
-    SetShopItemCategoryReq,
-    ShopItemCreateReq
+  exists,
+  isBetween,
+  isBigger,
+  isNotNull,
+  isNull,
+  isSmaller,
+  isTypeOf,
+} from "../../utils/dataCheck";
+import {
+  DeleteOneShopItemReq,
+  SetShopItemCategoryReq,
+  ShopItemCreateReq,
 } from "../../types";
-import {IsAdminRequest, ShopItemEntity} from "../../types";
-import {AuthInvalidError} from "../../utils/errors";
+import { IsAdminRequest, ShopItemEntity } from "../../types";
+import { AuthInvalidError } from "../../utils/errors";
 
 export const adminShopItemRouter = Router();
 
 adminShopItemRouter
-    .get('/all', adminToken, async (req: IsAdminRequest, res) => {
+  .get("/all", adminToken, async (req: IsAdminRequest, res) => {
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    const shopItemList = await ShopItemRecord.listAll();
 
-        const shopItemList = await ShopItemRecord.listAll();
+    res.json(shopItemList as ShopItemEntity[]);
+  })
+  .get(
+    "/all/category/:categoryId",
+    adminToken,
+    async (req: IsAdminRequest, res) => {
+      if (!req.isAdmin) throw new AuthInvalidError();
 
-        res.json(shopItemList as ShopItemEntity[])
-    })
-    .get('/all/category/:categoryId',adminToken, async (req: IsAdminRequest, res) => {
+      const { categoryId } = req.params;
+      exists(categoryId, "id param");
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+      const category = await CategoryRecord.getOne(categoryId);
+      isNull(category, null, "category does not exists");
+      const shopItemList = await ShopItemRecord.listAllByCategory(categoryId);
 
-        const {categoryId} = req.params;
-        exists(categoryId, 'id param')
+      res.json(shopItemList as ShopItemEntity[]);
+    }
+  )
+  .get("/all/name/:name", adminToken, async (req: IsAdminRequest, res) => {
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        const category = await CategoryRecord.getOne(categoryId);
-        isNull(category, null,'category does not exists')
-        const shopItemList = await ShopItemRecord.listAllByCategory(categoryId);
+    const { name } = req.params;
+    exists(name, "name");
 
-        res.json(shopItemList as ShopItemEntity[])
-    })
-    .get('/all/name/:name', adminToken,async (req: IsAdminRequest, res) => {
+    const shopItemList = await ShopItemRecord.getOneByName(name);
+    isNull(shopItemList, null, "shopItemList does not exists");
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    res.json(shopItemList as ShopItemEntity[]);
+  })
+  .get("/one/:id", adminToken, async (req: IsAdminRequest, res) => {
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        const {name} = req.params;
-        exists(name, 'name')
+    const { id } = req.params;
+    exists(id, "id param");
 
-        const shopItemList = await ShopItemRecord.getOneByName(name);
-        isNull(shopItemList, null,'shopItemList does not exists')
+    const shopItem = await ShopItemRecord.getOne(id);
+    isNull(shopItem, null, "shopItem does not exists");
 
-        res.json(shopItemList as ShopItemEntity[])
-    })
-    .get('/one/:id',adminToken, async (req: IsAdminRequest, res) => {
+    res.json(shopItem as ShopItemEntity);
+  })
+  .post("/", adminToken, async (req: IsAdminRequest, res) => {
+    let {
+      body: { categoryId, name, quantity, price, img },
+    }: {
+      body: ShopItemCreateReq;
+    } = req;
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        const {id} = req.params;
-        exists(id, 'id param')
+    exists(name, "name");
+    isTypeOf(name, "string", "name");
+    const shopItem = await ShopItemRecord.getOneByName(name);
+    isNotNull(shopItem, null, "shop item with this name already exists");
 
-        const shopItem = await ShopItemRecord.getOne(id);
-        isNull(shopItem, null,'shopItem does not exists')
+    exists(categoryId, "category id");
+    isTypeOf(categoryId, "string", "category id");
+    const category = await CategoryRecord.getOne(categoryId);
+    isNull(category, null, "category does not exists");
 
-        res.json(shopItem as ShopItemEntity)
-    })
-    .post('/',adminToken, async (req: IsAdminRequest, res) => {
-        let { body: {categoryId, name, quantity, price, img} } : {
-            body: ShopItemCreateReq
-        } = req
+    name = name ? name : null;
+    quantity = quantity ? quantity : null;
+    price = price ? price : null;
+    categoryId = categoryId ? categoryId : null;
+    img = img ? img : null;
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    const newShopItem = new ShopItemRecord({
+      name,
+      quantity,
+      price,
+      categoryId,
+      img,
+    } as ShopItemCreateReq);
+    await newShopItem.insert();
 
-        exists(name, 'name')
-        isTypeOf(name, 'string', 'name')
-        const shopItem = await ShopItemRecord.getOneByName(name);
-        isNotNull(shopItem, null,'shop item with this name already exists')
+    res.json(newShopItem as ShopItemEntity);
+  })
 
-        exists(categoryId, 'category id')
-        isTypeOf(categoryId, 'string', 'category id')
-        const category = await CategoryRecord.getOne(categoryId);
-        isNull(category, null,'category does not exists')
+  .patch("/", adminToken, async (req: IsAdminRequest, res) => {
+    const {
+      body: { categoryId, img, name, price, quantity, id },
+    }: {
+      body: SetShopItemCategoryReq;
+    } = req;
 
-        name = name ? name : null
-        quantity = quantity ? quantity : null
-        price = price ? price : null
-        categoryId = categoryId ? categoryId : null
-        img = img ? img : null
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        const newShopItem = new ShopItemRecord({name, quantity, price, categoryId, img} as ShopItemCreateReq);
-        await newShopItem.insert();
+    exists(id, "shop item id");
+    isTypeOf(id, "string", "id");
+    const shopItem = await ShopItemRecord.getOne(id);
+    isNull(shopItem, null, "shop item does not exists");
 
-        res.json(newShopItem as ShopItemEntity);
-    })
+    if (name) {
+      isTypeOf(name, "string", "name");
+      isBetween(name, 3, 50, "name");
+      const shopItemCheck = await ShopItemRecord.getOneByName(name);
+      isNotNull(shopItemCheck, null, "shop item with this name already exists");
+      shopItem.name = name;
+    }
 
-    .patch('/', adminToken, async (req: IsAdminRequest, res) => {
-        const { body: {categoryId, img, name, price, quantity, id} } : {
-            body: SetShopItemCategoryReq
-        } = req
+    if (img) {
+      isTypeOf(img, "string", "img");
+      isSmaller(img.length, 50, "img");
+      shopItem.img = img;
+    }
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    if (quantity || quantity === 0) {
+      isTypeOf(quantity, "number", "quantity");
+      isBetween(quantity, 0, 9999, "quantity");
+      shopItem.quantity = quantity;
+    }
 
-        exists(id, 'shop item id')
-        isTypeOf(id, 'string', 'id')
-        const shopItem = await ShopItemRecord.getOne(id);
-        isNull(shopItem, null,'shop item does not exists')
+    if (price || price === 0) {
+      isTypeOf(price, "number", "price");
+      isBigger(price, 0, "price");
+      shopItem.price = price;
+    }
 
-        if (name) {
-            isTypeOf(name, 'string', 'name')
-            isBetween(name, 3, 50, 'name')
-            const shopItemCheck = await ShopItemRecord.getOneByName(name);
-            isNotNull(shopItemCheck, null,'shop item with this name already exists')
-            shopItem.name = name
-        }
+    if (categoryId) {
+      isTypeOf(categoryId, "string", "category id");
+      const category = await CategoryRecord.getOne(categoryId);
+      isNull(category, null, "category does not exists");
+      shopItem.categoryId = categoryId;
+    }
 
-        if (img) {
-            isTypeOf(img, 'string', 'img')
-            isSmaller(img.length, 50, 'img')
-            shopItem.img = img
-        }
+    await shopItem.update();
 
-        if (quantity || quantity === 0) {
-            isTypeOf(quantity, 'number', 'quantity')
-            isBetween(quantity, 0, 9999, 'quantity')
-            shopItem.quantity = quantity
-        }
+    res.json(shopItem as ShopItemEntity);
+  })
 
-        if (price || price === 0) {
-            isTypeOf(price, 'number', 'price')
-            isBigger(price, 0, 'price')
-            shopItem.price = price
-        }
+  .delete("/", adminToken, async (req: IsAdminRequest, res) => {
+    const {
+      body: { id },
+    }: {
+      body: DeleteOneShopItemReq;
+    } = req;
 
-        if (categoryId) {
-            isTypeOf(categoryId, 'string', 'category id')
-            const category = await CategoryRecord.getOne(categoryId);
-            isNull(category, null,'category does not exists')
-            shopItem.categoryId = categoryId
-        }
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        await shopItem.update();
+    exists(id, "shop item id");
+    isTypeOf(id, "string", "id");
+    const shopItem = await ShopItemRecord.getOne(id);
 
-        res.json(shopItem as ShopItemEntity)
-    })
+    isNull(shopItem, null, "No shopItem found for this ID.");
 
-    .delete('/', adminToken,async (req: IsAdminRequest, res) => {
-
-        const { body: { id } } : {
-            body: DeleteOneShopItemReq
-        } = req
-
-        if (!req.isAdmin) throw new AuthInvalidError()
-
-        exists(id, 'shop item id')
-        isTypeOf(id, 'string', 'id')
-        const shopItem = await ShopItemRecord.getOne(id);
-
-        isNull(shopItem, null,'No shopItem found for this ID.')
-
-        await shopItem.delete();
-        res.json({message: "shop item deleted successfully."})
-    });
+    await shopItem.delete();
+    res.json({ message: "shop item deleted successfully." });
+  });

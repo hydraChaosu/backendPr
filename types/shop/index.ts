@@ -1,2 +1,2 @@
-export  * from './shopItem.entity'
-export * from './shopItem'
+export * from "./shopItem.entity";
+export * from "./shopItem";

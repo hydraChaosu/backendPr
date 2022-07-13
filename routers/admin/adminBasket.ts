@@ -1,144 +1,158 @@
-import {Router} from "express";
-import {adminToken} from "../../middleware/auth";
+import { Router } from "express";
+import { adminToken } from "../../middleware/auth";
 import {
-    AddItemToUserItemInBasketRequest,
-    DeleteItemInBasketRequest,
-    EditItemInBasketRequest,
-    GetOneItemInBasketRequest,
-    IsAdminRequest,
-    ItemInBasketEntity
+  AddItemToUserItemInBasketRequest,
+  DeleteItemInBasketRequest,
+  EditItemInBasketRequest,
+  GetOneItemInBasketRequest,
+  IsAdminRequest,
+  ItemInBasketEntity,
 } from "../../types";
-import {AuthInvalidError} from "../../utils/errors";
-import {exists, isBetween, isNull, isTypeOf} from "../../utils/dataCheck";
-import {ItemInBasketRecord, ShopItemRecord, UserRecord} from "../../records";
-import {ItemInBasketCreateReq} from "../../types";
+import { AuthInvalidError } from "../../utils/errors";
+import { exists, isBetween, isNull, isTypeOf } from "../../utils/dataCheck";
+import { ItemInBasketRecord, ShopItemRecord, UserRecord } from "../../records";
+import { ItemInBasketCreateReq } from "../../types";
 
 export const adminItemInBasketRouter = Router();
 
 adminItemInBasketRouter
-    .get('/all', adminToken,async (req: IsAdminRequest, res) => {
+  .get("/all", adminToken, async (req: IsAdminRequest, res) => {
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    const itemsInBasketList = await ItemInBasketRecord.listAll();
 
-        const itemsInBasketList = await ItemInBasketRecord.listAll();
+    res.json(itemsInBasketList as ItemInBasketEntity[]);
+  })
+  .get("/all/user/:userId", adminToken, async (req: IsAdminRequest, res) => {
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        res.json(itemsInBasketList as ItemInBasketEntity[])
+    const { userId } = req.params;
+    exists(userId, "userId param");
 
-    })
-    .get('/all/user/:userId', adminToken,async (req: IsAdminRequest, res) => {
+    const user = await UserRecord.getOne(userId);
+    isNull(user, null, "user does not exists");
+    const itemsInBasketList = await ItemInBasketRecord.listAllItemsForUser(
+      userId
+    );
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    res.json(itemsInBasketList as ItemInBasketEntity[]);
+  })
+  .get(
+    "/all/shopitem/:shopItemId",
+    adminToken,
+    async (req: IsAdminRequest, res) => {
+      if (!req.isAdmin) throw new AuthInvalidError();
 
-        const {userId} = req.params;
-        exists(userId, 'userId param')
+      const { shopItemId } = req.params;
 
-        const user = await UserRecord.getOne(userId);
-        isNull(user, null,'user does not exists')
-        const itemsInBasketList = await ItemInBasketRecord.listAllItemsForUser(userId);
+      exists(shopItemId, "item Id");
+      isTypeOf(shopItemId, "string", "itemId");
+      const shopItem = await ShopItemRecord.getOne(shopItemId);
+      isNull(shopItem, null, "Item does not exists");
+      const itemsInBasketList = await ItemInBasketRecord.listAllSameShopItems(
+        shopItemId
+      );
 
-        res.json(itemsInBasketList as ItemInBasketEntity[])
-    })
-    .get('/all/shopitem/:shopItemId', adminToken, async (req: IsAdminRequest, res) => {
+      res.json(itemsInBasketList as ItemInBasketEntity[]);
+    }
+  )
+  .get("/one/:id", adminToken, async (req: IsAdminRequest, res) => {
+    const {
+      body: { itemId },
+    }: {
+      body: GetOneItemInBasketRequest;
+    } = req;
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        const {shopItemId} = req.params;
+    exists(req.params.id, "item Id");
+    const itemsInBasketList = await ItemInBasketRecord.getOne(req.params.id);
+    isNull(itemsInBasketList, null, "Item does not exists");
 
-        exists(shopItemId, 'item Id')
-        isTypeOf(shopItemId, 'string', 'itemId')
-        const shopItem = await ShopItemRecord.getOne(shopItemId);
-        isNull(shopItem, null,'Item does not exists')
-        const itemsInBasketList = await ItemInBasketRecord.listAllSameShopItems(shopItemId);
+    res.json(itemsInBasketList as ItemInBasketEntity);
+  })
+  .post("/", adminToken, async (req: IsAdminRequest, res) => {
+    const {
+      body: { shopItemId, userId },
+    }: {
+      body: AddItemToUserItemInBasketRequest;
+    } = req;
 
-        res.json(itemsInBasketList as ItemInBasketEntity[])
-    })
-    .get('/one/:id', adminToken, async (req: IsAdminRequest, res) => {
-        const { body: {itemId} } : {
-            body: GetOneItemInBasketRequest
-        } = req
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    exists(userId, "user id");
+    isTypeOf(userId, "string", "user Id");
+    const user = await UserRecord.getOne(userId);
+    isNull(user, null, "user does not exists");
 
-        exists(req.params.id, 'item Id')
-        const itemsInBasketList = await ItemInBasketRecord.getOne(req.params.id);
-        isNull(itemsInBasketList, null,'Item does not exists')
+    exists(shopItemId, "shopItem id");
+    isTypeOf(shopItemId, "string", "shopItem Id");
+    const shopItem = await ShopItemRecord.getOne(shopItemId);
+    isNull(shopItem, null, "shop Item does not exists");
 
-        res.json(itemsInBasketList as ItemInBasketEntity)
-    })
-    .post('/', adminToken , async (req: IsAdminRequest, res) => {
-        const { body: {shopItemId, userId} } : {
-            body: AddItemToUserItemInBasketRequest
-        } = req
+    const newItemInBasket = new ItemInBasketRecord(
+      req.body as ItemInBasketCreateReq
+    );
+    await newItemInBasket.insert();
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    res.json(newItemInBasket as ItemInBasketEntity);
+  })
 
-        exists(userId, 'user id')
-        isTypeOf(userId, 'string', 'user Id')
-        const user = await UserRecord.getOne(userId);
-        isNull(user, null,'user does not exists')
+  .patch("/", adminToken, async (req: IsAdminRequest, res) => {
+    const {
+      body: { quantity, id, shopItemId, userId },
+    }: {
+      body: EditItemInBasketRequest;
+    } = req;
 
-        exists(shopItemId, 'shopItem id')
-        isTypeOf(shopItemId, 'string', 'shopItem Id')
-        const shopItem = await ShopItemRecord.getOne(shopItemId);
-        isNull(shopItem, null,'shop Item does not exists')
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        const newItemInBasket = new ItemInBasketRecord(req.body as ItemInBasketCreateReq);
-        await newItemInBasket.insert();
+    exists(id, "itemInBasketId  Id");
+    const itemInBasket = await ItemInBasketRecord.getOne(id);
+    isNull(itemInBasket, null, "item In Basket does not exists");
 
-        res.json(newItemInBasket as ItemInBasketEntity);
-    })
+    if (quantity) {
+      exists(quantity, "quantity");
+      isTypeOf(quantity, "number", "quantity");
+      isBetween(quantity, 0, 9999, "shop item quantity");
+      itemInBasket.quantity = quantity;
+    }
 
-    .patch('/', adminToken , async (req: IsAdminRequest, res) => {
-        const { body: {quantity, id,shopItemId, userId} } : {
-            body: EditItemInBasketRequest
-        } = req
+    if (shopItemId) {
+      exists(shopItemId, "shopItem id");
+      isTypeOf(shopItemId, "string", "shopItem Id");
+      const shopItem = await ShopItemRecord.getOne(shopItemId);
+      isNull(shopItem, null, "shop Item does not exists");
+      itemInBasket.shopItemId = shopItemId;
+    }
 
-        if (!req.isAdmin) throw new AuthInvalidError()
+    if (userId) {
+      exists(userId, "user id");
+      isTypeOf(userId, "string", "user Id");
+      const user = await UserRecord.getOne(userId);
+      isNull(user, null, "user does not exists");
+      itemInBasket.userId = userId;
+    }
 
-        exists(id, 'itemInBasketId  Id')
-        const itemInBasket = await ItemInBasketRecord.getOne(id);
-        isNull(itemInBasket, null,'item In Basket does not exists')
+    await itemInBasket.updateFull();
 
-        if (quantity) {
-            exists(quantity, 'quantity')
-            isTypeOf(quantity, 'number', 'quantity')
-            isBetween(quantity, 0, 9999, 'shop item quantity')
-            itemInBasket.quantity = quantity
-        }
+    res.json(itemInBasket as ItemInBasketEntity);
+  })
 
-        if (shopItemId) {
-            exists(shopItemId, 'shopItem id')
-            isTypeOf(shopItemId, 'string', 'shopItem Id')
-            const shopItem = await ShopItemRecord.getOne(shopItemId);
-            isNull(shopItem, null,'shop Item does not exists')
-            itemInBasket.shopItemId = shopItemId
-        }
+  .delete("/", adminToken, async (req: IsAdminRequest, res) => {
+    const {
+      body: { id },
+    }: {
+      body: DeleteItemInBasketRequest;
+    } = req;
 
-        if (userId) {
-            exists(userId, 'user id')
-            isTypeOf(userId, 'string', 'user Id')
-            const user = await UserRecord.getOne(userId);
-            isNull(user, null,'user does not exists')
-            itemInBasket.userId = userId
-        }
+    if (!req.isAdmin) throw new AuthInvalidError();
 
-        await itemInBasket.updateFull();
+    exists(id, "itemInBasket id");
+    isTypeOf(id, "string", "Id");
+    const itemInBasket = await ItemInBasketRecord.getOne(id);
+    isNull(itemInBasket, null, "No item In Basket found for this ID.");
 
-        res.json(itemInBasket as ItemInBasketEntity)
-    })
-
-    .delete('/', adminToken, async (req: IsAdminRequest, res) => {
-        const { body: {id} } : {
-            body: DeleteItemInBasketRequest
-        } = req
-
-        if (!req.isAdmin) throw new AuthInvalidError()
-
-        exists(id, 'itemInBasket id')
-        isTypeOf(id, 'string', 'Id')
-        const itemInBasket = await ItemInBasketRecord.getOne(id);
-        isNull(itemInBasket, null,'No item In Basket found for this ID.')
-
-        await itemInBasket.delete();
-        res.json({message: "item in basket deleted successfully."})
-    });
+    await itemInBasket.delete();
+    res.json({ message: "item in basket deleted successfully." });
+  });

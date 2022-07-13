@@ -1,20 +1,20 @@
-import {CategoryEntity} from "./category.entity";
+import { CategoryEntity } from "./category.entity";
 
-export type CreateCategoryReq = Omit<CategoryEntity, 'id'>;
+export type CreateCategoryReq = Omit<CategoryEntity, "id">;
 
 export interface SetCategoryForCategoryReq {
-    name: string;
+  name: string;
 }
 
 export interface UpdateCategoryForCategoryReq {
-    name: string;
-    id: string;
+  name: string;
+  id: string;
 }
 
 export interface GetOneCategoryReq {
-    id: string;
+  id: string;
 }
 
 export interface DeleteOneCategoryReq {
-    id: string;
+  id: string;
 }

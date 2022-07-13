@@ -1,6 +1,6 @@
-import {Request} from "express";
-import {UserTokenResponse} from "./user";
+import { Request } from "express";
+import { UserTokenResponse } from "./user";
 
-export interface UserAuthReq extends Request{
-    user:UserTokenResponse
+export interface UserAuthReq extends Request {
+  user: UserTokenResponse;
 }
