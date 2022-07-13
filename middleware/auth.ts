@@ -18,7 +18,7 @@ export function authenticateToken(
     token = authHeader;
   }
 
-  if (token === null) {
+  if (token == null) {
     throw new TokenError();
   }
 
@@ -50,7 +50,7 @@ export function adminToken(
     token = authHeader;
   }
 
-  if (token === null) {
+  if (token == null) {
     throw new TokenError();
   }
 
