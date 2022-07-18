@@ -22,3 +22,5 @@ curl -i -X GET http://localhost:3001/shopItem/all
 
 Bonus
 Export routes to insomnia from InsomniaExportRoutes.json file
+
+
