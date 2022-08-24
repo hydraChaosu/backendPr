@@ -1,12 +1,7 @@
 import { NextFunction, Request } from "express";
 import { Response } from "express/ts4.0";
 import { AuthInvalidError, TokenError } from "../utils/errors";
-import {
-  AuthRequest,
-  IsAdminRequest,
-  SessionWithUser,
-  UserAuthReq,
-} from "../types";
+import { AuthRequest, IsAdminRequest, UserAuthReq } from "../types";
 
 const jwt = require("jsonwebtoken");
 
@@ -75,6 +70,11 @@ export function adminToken(
 }
 
 function isAuthenticated(req: AuthRequest, res: Response, next: NextFunction) {
-  if (req.session.user) next();
-  else next("route");
+  if (req.session.user) {
+    next(); //If session exists, proceed to page
+  } else {
+    const err = new Error("Not logged in!");
+    console.log(req.session.user);
+    next(err); //Error, trying to access unauthorized page!
+  }
 }
