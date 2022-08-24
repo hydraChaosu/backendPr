@@ -8,6 +8,7 @@ import {
   itemInBasketRouter,
   personalInfoRouter,
   shopItemRouter,
+  testSessionUserRouter,
   userRouter,
 } from "./routers";
 import { categoryRouter } from "./routers";
@@ -37,8 +38,30 @@ app.use("/admin/user", adminUserRouter);
 app.use("/admin/personalInfo", adminPersonalInfoRouter);
 app.use("/admin/itemInBasket", adminItemInBasketRouter);
 
+app.use("/testSessions", testSessionUserRouter);
+
 app.use(handleError);
 
 app.listen(3001, "0.0.0.0", () => {
   console.log("Listening on http://localhost:3001");
 });
+
+// normalne testy
+
+// statystyki recordow
+
+//react
+//payload standarization
+//catch mysql2 errors
+//tokens in db
+//cashe in db
+//logout
+//refresh token
+//ciateczka
+
+//TODO express validator
+//TODO passport
+
+//wlasne validatory szczegolowe
+//nest
+//angielski w db
