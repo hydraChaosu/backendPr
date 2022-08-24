@@ -1,16 +1,18 @@
-lepsze readme
-swagger
-testy
-readme szablon
-branche do testow
-tech demo www
-dlugosc pola dla maila na 255
+swagger                                      8
+
+testy                                        7
+
+readme szablon                               6
+
+dlugosc pola dla maila na 255                3
 zmiana sprawdzania mail na tylko @
 
-test session
-test cookie
+test session          1
+test cookie           2
 
-use passport
+add user token                               3
+add activate token                           3
 
-add user token
-add activate token
+use passport                                 4
+
+change responses to message, success and payload          5
