@@ -28,7 +28,9 @@ app.use(
 );
 app.use(express.json()); // Content-type: application/json
 app.use(cookieParser());
-app.use(session({ secret: "Your secret key" }));
+app.use(
+  session({ secret: "Your secret key", saveUninitialized: true, resave: true })
+); // session
 
 app.use("/category", categoryRouter);
 app.use("/shopItem", shopItemRouter);
