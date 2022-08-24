@@ -29,7 +29,7 @@ app.use(
 app.use(express.json()); // Content-type: application/json
 app.use(cookieParser());
 app.use(
-  session({ secret: "Your secret key", saveUninitialized: true, resave: true })
+  session({ secret: "Your secret key", saveUninitialized: true, resave: false })
 ); // session
 
 app.use("/category", categoryRouter);
