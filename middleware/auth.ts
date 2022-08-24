@@ -1,7 +1,12 @@
-import { NextFunction } from "express";
+import { NextFunction, Request } from "express";
 import { Response } from "express/ts4.0";
 import { AuthInvalidError, TokenError } from "../utils/errors";
-import { IsAdminRequest, UserAuthReq } from "../types";
+import {
+  AuthRequest,
+  IsAdminRequest,
+  SessionWithUser,
+  UserAuthReq,
+} from "../types";
 
 const jwt = require("jsonwebtoken");
 
@@ -67,4 +72,9 @@ export function adminToken(
       next();
     }
   );
+}
+
+function isAuthenticated(req: AuthRequest, res: Response, next: NextFunction) {
+  if (req.session.user) next();
+  else next("route");
 }
