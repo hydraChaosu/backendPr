@@ -1,18 +1,22 @@
-swagger                                      8
+swagger  dokumentacja                        6
 
 testy                                        7
 
 readme szablon                               6
 
-
-dlugosc pola dla maila na 255                3
-zmiana sprawdzania mail na tylko @
-
-add user token                               3
-add activate token                           3
-isActive                                     3
-
 use passport                                 4
+logout
+express validator
 
 change responses to message, success and payload          5
 add types                                                 5
+
+create token for activate and send this to an email address
+
+statystyki recordow
+catch mysql2 errors
+cashe in db
+
+refresh token
+ciateczka
+wlasne validatory szczegolowe

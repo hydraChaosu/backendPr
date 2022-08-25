@@ -12,6 +12,9 @@ export class UserRecord implements UserEntity {
   email: string;
   login: string;
   password: string;
+  token?: string;
+  activateToken?: string;
+  isActive: 0 | 1;
 
   constructor(obj: UserEntity) {
     exists(obj.password, "password");
@@ -24,11 +27,7 @@ export class UserRecord implements UserEntity {
 
     exists(obj.email, "email");
     isTypeOf(obj.email, "string", "email");
-    if (
-      !obj.email.match(
-        /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      )
-    ) {
+    if (!obj.email.match(/@/)) {
       throw new ValidationError("email is not correct");
     }
     isBetween(obj.email.length, 3, 40, "email length");
@@ -43,14 +42,19 @@ export class UserRecord implements UserEntity {
     if (!this.id) {
       this.id = uuid();
     }
+
+    //create activate token
+    //and send this to an email
+
     console.log(this);
     await pool.execute(
-      "INSERT INTO `users`(`id`, `login`, `email`,`password`) VALUES(:id, :login, :email, :password)",
+      "INSERT INTO `users`(`id`, `login`, `email`,`password`, `isActive`) VALUES(:id, :login, :email, :password, :isActive)",
       {
         id: this.id,
         login: this.login,
         email: this.email,
         password: this.password,
+        isActive: 0,
       }
     );
 
