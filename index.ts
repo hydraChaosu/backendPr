@@ -8,6 +8,7 @@ import {
   itemInBasketRouter,
   personalInfoRouter,
   shopItemRouter,
+  testCookieRouter,
   testSessionUserRouter,
   userRouter,
 } from "./routers";
@@ -45,6 +46,7 @@ app.use("/admin/personalInfo", adminPersonalInfoRouter);
 app.use("/admin/itemInBasket", adminItemInBasketRouter);
 
 app.use("/testSessions", testSessionUserRouter);
+app.use("/testCokkie", testCookieRouter);
 
 app.use(handleError);
 
