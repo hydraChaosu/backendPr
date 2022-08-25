@@ -1,15 +1,35 @@
-swagger  dokumentacja                        6
-
-testy                                        7
+niedziela
 
 readme szablon                               6
+swagger  dokumentacja                        6
+testy                                        7
 
-use passport                                 4
+sobota
+
+token idzie do ciastka
+logout usuwa ciastko
+
+auth sprawdza dane z ciastka
+i czy jest ciastko jwt
+i czy cos w nim jest
+szuka usera po tym tokenie i go zwraca
+
+zlap usera i rob dla niego token1 uuid i zapisz do db
+i zrob jwt z danymi (id: token1, jwtkeysecret, {expires}) i zwraca token
+zwracaj ciasto jwt .cookie('jwt', token, {
+                    secure: false,
+                    domain: 'localhost',
+                    httpOnly: true,
+                })
+
+use passport
 logout
 express validator
+user role
+change responses to message, success and payload
+add types
 
-change responses to message, success and payload          5
-add types                                                 5
+pozniej
 
 create token for activate and send this to an email address
 
@@ -17,6 +37,4 @@ statystyki recordow
 catch mysql2 errors
 cashe in db
 
-refresh token
-ciateczka
 wlasne validatory szczegolowe
