@@ -4,15 +4,15 @@ testy                                        7
 
 readme szablon                               6
 
+
 dlugosc pola dla maila na 255                3
 zmiana sprawdzania mail na tylko @
 
-test session          1
-test cookie           2
-
 add user token                               3
 add activate token                           3
+isActive                                     3
 
 use passport                                 4
 
 change responses to message, success and payload          5
+add types                                                 5
