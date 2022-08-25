@@ -37,7 +37,6 @@ testSessionUserRouter
       });
     }
   )
-
   .get("/logout", function (req: AuthRequest, res, next) {
     // logout logic
 
