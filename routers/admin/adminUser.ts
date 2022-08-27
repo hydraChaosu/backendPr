@@ -4,15 +4,16 @@ import { exists, isBetween, isNull, isTypeOf } from "../../utils/dataCheck";
 import {
   AdminLoginUserReq,
   AdminSetUserCategoryReq,
+  CreateUserReq,
   DeleteOneUserReq,
   IsAdminRequest,
   PersonalInfoCreateReq,
   UserEntity,
 } from "../../types";
-import { CreateUserReq } from "../../types";
 import { AuthInvalidError, ValidationError } from "../../utils/errors";
-import { generateAccessToken } from "../../utils/generateToken";
 import { adminToken } from "../../middleware/auth";
+import { generateAuthToken } from "../../utils/generateToken";
+
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
@@ -101,7 +102,7 @@ adminUserRouter
     const user = await UserRecord.getOne(id);
     isNull(user, null, "user does not exists");
 
-    const token = generateAccessToken({ id: user.id, email: user.email });
+    const token = generateAuthToken(user);
     res.json({ token });
   })
 
