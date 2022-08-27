@@ -6,16 +6,23 @@ import {
   UserRecord,
 } from "../../records";
 import { exists, isBetween, isNull, isTypeOf } from "../../utils/dataCheck";
-import { PersonalInfoCreateReq, UserAuthReq, UserEntity } from "../../types";
-import { CreateUserReq, LoginUserReq, SetUserCategoryReq } from "../../types";
+import {
+  CreateUserReq,
+  LoginUserReq,
+  PersonalInfoCreateReq,
+  SetUserCategoryReq,
+  UserAuthReq,
+  UserEntity,
+} from "../../types";
 import {
   AuthInvalidError,
   ImpossibleShopRequestError,
   InvalidTokenError,
   ValidationError,
 } from "../../utils/errors";
-import { generateAccessToken } from "../../utils/generateToken";
 import { authenticateToken } from "../../middleware/auth";
+import { generateAuthToken } from "../../utils/generateToken";
+
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
@@ -109,7 +116,7 @@ userRouter
 
     const match = await bcrypt.compare(body.password, user.password);
     if (match) {
-      const token = generateAccessToken({ id: user.id, email: user.email });
+      const token = generateAuthToken(user);
       res.json({ token });
     } else {
       throw new ValidationError("Password does not match");
