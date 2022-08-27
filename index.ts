@@ -9,8 +9,6 @@ import {
   itemInBasketRouter,
   personalInfoRouter,
   shopItemRouter,
-  testCookieRouter,
-  testSessionUserRouter,
   userRouter,
 } from "./routers";
 import cors from "cors";
@@ -49,9 +47,6 @@ app.use("/admin/shopItem", adminShopItemRouter);
 app.use("/admin/user", adminUserRouter);
 app.use("/admin/personalInfo", adminPersonalInfoRouter);
 app.use("/admin/itemInBasket", adminItemInBasketRouter);
-
-app.use("/testSessions", testSessionUserRouter);
-app.use("/testCokkie", testCookieRouter);
 
 app.use(handleError);
 

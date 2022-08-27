@@ -15,7 +15,9 @@ export async function generateAuthToken(user: UserRecord) {
   user.token = token;
   await user.update();
 
-  return jwt.sign(user, process.env.TOKEN_SECRET, { expiresIn: "1800s" });
+  return jwt.sign({ id: token }, process.env.TOKEN_SECRET, {
+    expiresIn: "1800s",
+  });
 }
 
 // export async function generateActivateToken(user: UserRecord) {
