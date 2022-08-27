@@ -30,16 +30,18 @@ export const userRouter = Router();
 
 userRouter
 
-  .get("/", authenticateToken, async (req: UserAuthReq, res) => {
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
+  .get("/", authenticateToken, async (req: any, res) => {
+    const { user } = req;
 
-    exists(reqUserId, "id param");
-    isTypeOf(reqUserId, "string", "user id");
-    const user = await UserRecord.getOne(reqUserId);
-    isNull(user, null, "user does not exists");
-
-    if (user.id !== reqUserId) throw new AuthInvalidError();
+    // const { id: reqUserId } = req.user;
+    // if (!reqUserId) throw new InvalidTokenError();
+    //
+    // exists(reqUserId, "id param");
+    // isTypeOf(reqUserId, "string", "user id");
+    // const user = await UserRecord.getOne(reqUserId);
+    // isNull(user, null, "user does not exists");
+    //
+    // if (user.id !== reqUserId) throw new AuthInvalidError();
 
     res.json(user as UserEntity);
   })
@@ -116,10 +118,39 @@ userRouter
 
     const match = await bcrypt.compare(body.password, user.password);
     if (match) {
-      const token = generateAuthToken(user);
-      res.json({ token });
+      const token = await generateAuthToken(user);
+      res
+        .cookie("jwt", token, {
+          secure: false,
+          domain: "localhost",
+          httpOnly: true,
+        })
+        .json({
+          isSuccess: true,
+          userId: user.id,
+        });
     } else {
       throw new ValidationError("Password does not match");
+    }
+  })
+  .get("/logout", authenticateToken, async (req: UserAuthReq, res) => {
+    const { user } = req;
+    try {
+      user.token = null;
+      await user.update();
+
+      res.clearCookie("jwt", {
+        secure: false,
+        domain: "localhost",
+        httpOnly: true,
+      });
+
+      return res.json({ isSuccess: true });
+    } catch (e) {
+      return res.json({
+        isSuccess: false,
+        error: e.message,
+      });
     }
   })
   .get("/buy", authenticateToken, async (req: UserAuthReq, res) => {
