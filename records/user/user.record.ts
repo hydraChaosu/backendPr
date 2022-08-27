@@ -13,8 +13,8 @@ export class UserRecord implements UserEntity {
   login: string;
   password: string;
   token?: string;
-  activateToken?: string;
-  isActive: 0 | 1;
+  //TODO activateToken?: string;
+  //TODO isActive: 0 | 1;
 
   constructor(obj: UserEntity) {
     exists(obj.password, "password");
@@ -32,10 +32,25 @@ export class UserRecord implements UserEntity {
     }
     isBetween(obj.email.length, 3, 40, "email length");
 
+    if (obj.token) {
+      isTypeOf(obj.token, "string", "token");
+    }
+
+    // if (obj.activateToken) {
+    //   isTypeOf(obj.activateToken, "string", "activate token");
+    // }
+    //
+    // if (obj.isActive) {
+    //   isTypeOf(obj.isActive, "number", "is active");
+    // }
+
     this.id = obj.id;
     this.login = obj.login;
     this.email = obj.email;
     this.password = obj.password;
+    this.token = obj.token;
+    // this.activateToken = obj.activateToken;
+    // this.isActive = obj.isActive ? obj.isActive : 0;
   }
 
   async insert(): Promise<string> {
@@ -63,12 +78,15 @@ export class UserRecord implements UserEntity {
 
   async update(): Promise<void> {
     await pool.execute(
-      "UPDATE `users` SET `login` = :login, `email` = :email, `password` = :password WHERE `id` = :id",
+      "UPDATE `users` SET `login` = :login, `email` = :email, `password` = :password, `isActive` = :isActive, `token` = :token, `activateToken` =: activateToken WHERE `id` = :id",
       {
         id: this.id,
         login: this.login,
         email: this.email,
         password: this.password,
+        token: this.token,
+        // activateToken: this.activateToken,
+        // isActive: this.isActive,
       }
     );
   }
@@ -121,6 +139,16 @@ export class UserRecord implements UserEntity {
       "SELECT * FROM `users` WHERE `email` = :email",
       {
         email,
+      }
+    )) as UserRecordResults;
+    return results.length !== 0;
+  }
+
+  static async isAuthTokenUsed(token: string): Promise<Boolean> {
+    const [results] = (await pool.execute(
+      "SELECT * FROM `users` WHERE `token` = :token",
+      {
+        token,
       }
     )) as UserRecordResults;
     return results.length !== 0;
