@@ -1,7 +1,12 @@
 import { NextFunction } from "express";
 import { Response } from "express/ts4.0";
-import { AuthInvalidError, TokenError } from "../utils/errors";
-import { AuthRequest, IsAdminRequest, UserAuthReq } from "../types";
+import {
+  AuthInvalidError,
+  InvalidTokenError,
+  TokenError,
+} from "../utils/errors";
+import { IsAdminRequest, UserAuthReq } from "../types";
+import { UserRecord } from "../records";
 
 const jwt = require("jsonwebtoken");
 
@@ -10,31 +15,33 @@ export function authenticateToken(
   res: Response,
   next: NextFunction
 ): void {
-  const authHeader = req.headers["authorization"];
+  let token: any = req.cookies.jwt ? req.cookies.jwt : null;
 
-  let token = null;
-
-  if (typeof authHeader === "string") {
-    token = authHeader;
-  }
-
-  if (token == null) {
+  if (token === null) {
     throw new TokenError();
   }
 
-  jwt.verify(
-    token,
-    process.env.TOKEN_SECRET as string,
-    (err: any, user: any) => {
-      console.log(err);
+  try {
+    jwt.verify(
+      token,
+      process.env.TOKEN_SECRET as string,
+      async (err: any, payload: any) => {
+        console.log(err);
+        console.log(payload);
+        console.log(payload.id);
 
-      if (err) throw new AuthInvalidError();
+        if (!payload || !payload.id) {
+          throw new InvalidTokenError();
+        }
+        if (err) throw new AuthInvalidError();
 
-      req.user = user;
-
-      next();
-    }
-  );
+        req.user = await UserRecord.getOneByToken(payload.id);
+        next();
+      }
+    );
+  } catch (e) {
+    throw new TokenError();
+  }
 }
 
 export function adminToken(
@@ -67,20 +74,6 @@ export function adminToken(
       next();
     }
   );
-}
-
-function isAuthenticated(
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): void {
-  if (req.session.user) {
-    next(); //If session exists, proceed to page
-  } else {
-    const err = new Error("Not logged in!");
-    console.log(req.session.user);
-    next(err); //Error, trying to access unauthorized page!
-  }
 }
 
 // export const checkIfUserIsActivated = (user: UserRecord): boolean =>
