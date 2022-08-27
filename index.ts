@@ -5,6 +5,7 @@ import {
   adminItemInBasketRouter,
   adminRouter,
   adminShopItemRouter,
+  categoryRouter,
   itemInBasketRouter,
   personalInfoRouter,
   shopItemRouter,
@@ -12,12 +13,12 @@ import {
   testSessionUserRouter,
   userRouter,
 } from "./routers";
-import { categoryRouter } from "./routers";
 import cors from "cors";
 import { handleError } from "./utils/errors";
 import "dotenv/config";
 import { adminUserRouter } from "./routers/admin/adminUser";
 import { adminPersonalInfoRouter } from "./routers/admin/adminPersonalInfo";
+
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const app = express();
@@ -30,8 +31,12 @@ app.use(
 app.use(express.json()); // Content-type: application/json
 app.use(cookieParser());
 app.use(
-  session({ secret: "Your secret key", saveUninitialized: true, resave: false })
-); // session
+  session({
+    secret: "Your secret key",
+    saveUninitialized: false,
+    resave: false,
+  })
+);
 
 app.use("/category", categoryRouter);
 app.use("/shopItem", shopItemRouter);

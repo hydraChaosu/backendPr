@@ -6,6 +6,8 @@ testy                                        7
 
 sobota
 
+logowanie
+
 token idzie do ciastka
 logout usuwa ciastko
 
@@ -22,8 +24,6 @@ zwracaj ciasto jwt .cookie('jwt', token, {
                     httpOnly: true,
                 })
 
-use passport
-logout
 express validator
 user role
 change responses to message, success and payload
@@ -32,6 +32,7 @@ add types
 pozniej
 
 create token for activate and send this to an email address
+activate user path
 
 statystyki recordow
 catch mysql2 errors
