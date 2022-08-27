@@ -63,13 +63,12 @@ export class UserRecord implements UserEntity {
 
     console.log(this);
     await pool.execute(
-      "INSERT INTO `users`(`id`, `login`, `email`,`password`, `isActive`) VALUES(:id, :login, :email, :password, :isActive)",
+      "INSERT INTO `users`(`id`, `login`, `email`,`password`) VALUES(:id, :login, :email, :password)",
       {
         id: this.id,
         login: this.login,
         email: this.email,
         password: this.password,
-        isActive: 0,
       }
     );
 
@@ -78,7 +77,7 @@ export class UserRecord implements UserEntity {
 
   async update(): Promise<void> {
     await pool.execute(
-      "UPDATE `users` SET `login` = :login, `email` = :email, `password` = :password, `isActive` = :isActive, `token` = :token, `activateToken` =: activateToken WHERE `id` = :id",
+      "UPDATE `users` SET `login` = :login, `email` = :email, `password` = :password, `token` = :token WHERE `id` = :id",
       {
         id: this.id,
         login: this.login,
@@ -109,6 +108,16 @@ export class UserRecord implements UserEntity {
       "SELECT * FROM `users` WHERE `id` = :id",
       {
         id,
+      }
+    )) as UserRecordResults;
+    return results.length === 0 ? null : new UserRecord(results[0]);
+  }
+
+  static async getOneByToken(token: string): Promise<UserRecord | null> {
+    const [results] = (await pool.execute(
+      "SELECT * FROM `users` WHERE `token` = :token",
+      {
+        token,
       }
     )) as UserRecordResults;
     return results.length === 0 ? null : new UserRecord(results[0]);
