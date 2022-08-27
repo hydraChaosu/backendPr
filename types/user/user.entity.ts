@@ -4,6 +4,6 @@ export interface UserEntity {
   login: string;
   password: string;
   token?: string;
-  activateToken?: string;
-  isActive: 0 | 1;
+  //TODO activateToken?: string;
+  //TODO isActive: 0 | 1;
 }
