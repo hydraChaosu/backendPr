@@ -1,4 +1,4 @@
-import { NextFunction, Request } from "express";
+import { NextFunction } from "express";
 import { Response } from "express/ts4.0";
 import { AuthInvalidError, TokenError } from "../utils/errors";
 import { AuthRequest, IsAdminRequest, UserAuthReq } from "../types";
@@ -9,7 +9,7 @@ export function authenticateToken(
   req: UserAuthReq,
   res: Response,
   next: NextFunction
-) {
+): void {
   const authHeader = req.headers["authorization"];
 
   let token = null;
@@ -41,7 +41,7 @@ export function adminToken(
   req: IsAdminRequest,
   res: Response,
   next: NextFunction
-) {
+): void {
   const authHeader = req.headers["admin-authorization"];
 
   let token = null;
@@ -69,7 +69,11 @@ export function adminToken(
   );
 }
 
-function isAuthenticated(req: AuthRequest, res: Response, next: NextFunction) {
+function isAuthenticated(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): void {
   if (req.session.user) {
     next(); //If session exists, proceed to page
   } else {
@@ -78,3 +82,6 @@ function isAuthenticated(req: AuthRequest, res: Response, next: NextFunction) {
     next(err); //Error, trying to access unauthorized page!
   }
 }
+
+// export const checkIfUserIsActivated = (user: UserRecord): boolean =>
+//   user.isActive === 1;
