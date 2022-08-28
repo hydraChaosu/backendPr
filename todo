@@ -1,13 +1,14 @@
 niedziela
 
+change responses to message, success and payload
+add types
+express validator
+
 readme szablon                               6
 swagger  dokumentacja                        6
 testy                                        7
 
-express validator
 user role
-change responses to message, success and payload
-add types
 
 pozniej
 
@@ -17,5 +18,3 @@ activate user path
 statystyki recordow
 catch mysql2 errors
 cashe in db
-
-wlasne validatory szczegolowe
