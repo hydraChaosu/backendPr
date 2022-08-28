@@ -5,8 +5,9 @@ import {
   InvalidTokenError,
   TokenError,
 } from "../utils/errors";
-import { IsAdminRequest, UserAuthReq } from "../types";
+import { IsAdminRequest, UserAuthReq, UserRole } from "../types";
 import { UserRecord } from "../records";
+import { isNull } from "../utils/dataCheck";
 
 const jwt = require("jsonwebtoken");
 
@@ -36,6 +37,8 @@ export function authenticateToken(
         if (err) throw new AuthInvalidError();
 
         req.user = await UserRecord.getOneByToken(payload.id);
+        isNull(req.user, null, "user does not exists");
+
         next();
       }
     );
@@ -78,3 +81,13 @@ export function adminToken(
 
 // export const checkIfUserIsActivated = (user: UserRecord): boolean =>
 //   user.isActive === 1;
+
+export const checkIfCorrectUserRole =
+  (role: UserRole[]) =>
+  (req: UserAuthReq, res: Response, next: NextFunction) => {
+    console.log(role);
+    if (role.some((role) => role === req.user.role)) {
+      next();
+    }
+    throw new AuthInvalidError();
+  };
