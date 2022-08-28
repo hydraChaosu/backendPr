@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Response, Router } from "express";
 import { PersonalInfoRecord, UserRecord } from "../../records";
 import { exists, isBetween, isNull, isTypeOf } from "../../utils/dataCheck";
 import {
@@ -6,12 +6,11 @@ import {
   AdminSetUserCategoryReq,
   CreateUserReq,
   DeleteOneUserReq,
-  IsAdminRequest,
   PersonalInfoCreateReq,
+  UserAuthReq,
   UserEntity,
 } from "../../types";
-import { AuthInvalidError, ValidationError } from "../../utils/errors";
-import { adminToken } from "../../middleware/auth";
+import { ValidationError } from "../../utils/errors";
 import { generateAuthToken } from "../../utils/generateToken";
 
 const bcrypt = require("bcrypt");
@@ -21,16 +20,12 @@ export const adminUserRouter = Router();
 
 adminUserRouter
 
-  .get("/all", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .get("/all", async (req: UserAuthReq, res: Response) => {
     const userList = await UserRecord.listAll();
 
     res.json(userList as UserEntity[]);
   })
-  .get("/one/:id", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .get("/one/:id", async (req: UserAuthReq, res: Response) => {
     const { id } = req.params;
     exists(id, "id param");
 
@@ -39,9 +34,7 @@ adminUserRouter
 
     res.json(user as UserEntity);
   })
-  .post("/register", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .post("/register", async (req: UserAuthReq, res: Response) => {
     const {
       body,
     }: {
@@ -88,9 +81,7 @@ adminUserRouter
 
     res.json(user as UserEntity);
   })
-  .post("/login", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .post("/login", async (req: UserAuthReq, res: Response) => {
     const {
       body: { id },
     }: {
@@ -106,9 +97,7 @@ adminUserRouter
     res.json({ token });
   })
 
-  .patch("/", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .patch("/", async (req: UserAuthReq, res: Response) => {
     const {
       body,
     }: {
@@ -142,11 +131,7 @@ adminUserRouter
 
     if (body.email) {
       isTypeOf(body.email, "string", "email");
-      if (
-        !body.email.match(
-          /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-        )
-      ) {
+      if (!body.email.match(/@/)) {
         throw new ValidationError("email is not correct");
       }
       isBetween(body.email.length, 3, 40, "email length");
@@ -162,9 +147,7 @@ adminUserRouter
     res.json(user as UserEntity);
   })
 
-  .delete("/", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .delete("/", async (req: UserAuthReq, res: Response) => {
     const {
       body: { id },
     }: {

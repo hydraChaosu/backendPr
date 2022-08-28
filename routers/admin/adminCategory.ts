@@ -1,13 +1,12 @@
-import { Router } from "express";
-import { adminToken } from "../../middleware/auth";
+import { Response, Router } from "express";
 import {
   CategoryEntity,
   CreateCategoryReq,
-  IsAdminRequest,
+  DeleteItemInBasketRequest,
   SetCategoryForCategoryReq,
   UpdateCategoryForCategoryReq,
+  UserAuthReq,
 } from "../../types";
-import { AuthInvalidError } from "../../utils/errors";
 import {
   exists,
   isBetweenEqual,
@@ -16,22 +15,17 @@ import {
   isTypeOf,
 } from "../../utils/dataCheck";
 import { CategoryRecord } from "../../records";
-import { DeleteItemInBasketRequest } from "../../types";
 
 export const adminCategoryRouter = Router();
 
 adminCategoryRouter
-  .get("/all", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .get("/all", async (req: UserAuthReq, res: Response) => {
     const categoryList = await CategoryRecord.listAll();
 
     res.json(categoryList as CategoryEntity[]);
   })
 
-  .get("/:name", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .get("/:name", async (req: UserAuthReq, res: Response) => {
     const { name } = req.params;
     exists(name, "name param");
 
@@ -40,9 +34,7 @@ adminCategoryRouter
 
     res.json(category as CategoryEntity);
   })
-  .get("/one/:id", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .get("/one/:id", async (req: UserAuthReq, res: Response) => {
     const { id } = req.params;
     exists(id, "id param");
 
@@ -51,14 +43,12 @@ adminCategoryRouter
 
     res.json(category as CategoryEntity);
   })
-  .post("/", adminToken, async (req: IsAdminRequest, res) => {
+  .post("/", async (req: UserAuthReq, res: Response) => {
     const {
       body: { name },
     }: {
       body: SetCategoryForCategoryReq;
     } = req;
-
-    if (!req.isAdmin) throw new AuthInvalidError();
 
     const category = await CategoryRecord.getOneByName(name);
     isNotNull(category, null, "category with this name already exists");
@@ -69,14 +59,12 @@ adminCategoryRouter
     res.json(newCategory as CategoryEntity);
   })
 
-  .patch("/", adminToken, async (req: IsAdminRequest, res) => {
+  .patch("/", async (req: UserAuthReq, res: Response) => {
     const {
       body: { name, id },
     }: {
       body: UpdateCategoryForCategoryReq;
     } = req;
-
-    if (!req.isAdmin) throw new AuthInvalidError();
 
     exists(id, "category Id");
     isTypeOf(id, "string", "category id");
@@ -95,14 +83,12 @@ adminCategoryRouter
     res.json(category as CategoryEntity);
   })
 
-  .delete("/", adminToken, async (req: IsAdminRequest, res) => {
+  .delete("/", async (req: UserAuthReq, res: Response) => {
     const {
       body: { id },
     }: {
       body: DeleteItemInBasketRequest;
     } = req;
-
-    if (!req.isAdmin) throw new AuthInvalidError();
 
     exists(id, "category Id");
     isTypeOf(id, "string", "category id");
