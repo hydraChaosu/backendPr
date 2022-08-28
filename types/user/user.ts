@@ -25,6 +25,6 @@ export interface DeleteOneUserReq {
 }
 
 export enum UserRole {
-  CLIENT,
+  SHOPCLIENT,
   ADMIN,
 }
