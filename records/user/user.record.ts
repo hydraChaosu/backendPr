@@ -3,12 +3,7 @@ import { ValidationError } from "../../utils/errors";
 import { v4 as uuid } from "uuid";
 import { FieldPacket } from "mysql2";
 import { UserEntity, UserRole } from "../../types";
-import {
-  exists,
-  isBetween,
-  isBetweenEqual,
-  isTypeOf,
-} from "../../utils/dataCheck";
+import { exists, isBetween, isTypeOf } from "../../utils/dataCheck";
 
 type UserRecordResults = [UserRecord[], FieldPacket[]];
 
@@ -29,7 +24,7 @@ export class UserRecord implements UserEntity {
 
     if (obj.role) {
       isTypeOf(obj.role, "number", "role");
-      isBetweenEqual(obj.role, 0, 1, "role");
+      isBetween(obj.role, 0, 1, "role");
     }
 
     exists(obj.login, "login");
