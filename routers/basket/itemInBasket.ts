@@ -1,48 +1,40 @@
 import { Router } from "express";
-import { ItemInBasketRecord, ShopItemRecord, UserRecord } from "../../records";
-import { ItemInBasketEntity, UserAuthReq } from "../../types";
-import { exists, isBetween, isNull, isTypeOf } from "../../utils/dataCheck";
+import { ItemInBasketRecord, ShopItemRecord } from "../../records";
 import {
   DeleteItemInBasketRequest,
   ItemInBasketCreateReq,
+  ItemInBasketEntity,
   SetItemInBasketReq,
+  UserAuthReq,
 } from "../../types";
+import { exists, isBetween, isNull, isTypeOf } from "../../utils/dataCheck";
 import { authenticateToken } from "../../middleware/auth";
-import { AuthInvalidError, InvalidTokenError } from "../../utils/errors";
+import { AuthInvalidError } from "../../utils/errors";
+
 export const itemInBasketRouter = Router();
 
 itemInBasketRouter
 
   .get("/all", authenticateToken, async (req: UserAuthReq, res) => {
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
+    const { user } = req;
 
-    exists(reqUserId, "user Id param");
-    isTypeOf(reqUserId, "string", "user id");
-    const user = await UserRecord.getOne(reqUserId);
-    isNull(user, null, "user does not exists");
     const itemsInBasketList = await ItemInBasketRecord.listAllItemsForUser(
-      reqUserId
+      user.id
     );
 
     res.json(itemsInBasketList as ItemInBasketEntity[]);
   })
   .get("/one/:id", authenticateToken, async (req: UserAuthReq, res) => {
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
+    const { user } = req;
 
     const { id } = req.params;
-    exists(id, "id param");
-
-    const user = await UserRecord.getOne(reqUserId);
-    isNull(user, null, "user does not exists");
 
     exists(id, "item id");
     isTypeOf(id, "string", "item id");
     const itemInBasket = await ItemInBasketRecord.getOne(id);
     isNull(itemInBasket, null, "Item does not exists");
 
-    if (itemInBasket.userId !== reqUserId) throw new AuthInvalidError();
+    if (itemInBasket.userId !== user.id) throw new AuthInvalidError();
 
     res.json(itemInBasket as ItemInBasketEntity);
   })
@@ -53,20 +45,14 @@ itemInBasketRouter
       body: ItemInBasketCreateReq;
     } = req;
 
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
-
-    exists(reqUserId, "user id");
-    isTypeOf(reqUserId, "string", "user Id");
-    const user = await UserRecord.getOne(reqUserId);
-    isNull(user, null, "user does not exists");
+    const { user } = req;
 
     exists(shopItemId, "shopItem id");
     isTypeOf(shopItemId, "string", "shopItem Id");
     const shopItem = await ShopItemRecord.getOne(shopItemId);
     isNull(shopItem, null, "shop Item does not exists");
 
-    req.body.userId = reqUserId;
+    req.body.userId = user.id;
 
     const newItemInBasket = new ItemInBasketRecord(
       req.body as ItemInBasketCreateReq
@@ -83,8 +69,7 @@ itemInBasketRouter
       body: SetItemInBasketReq;
     } = req;
 
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
+    const { user } = req;
 
     exists(id, "itemInBasketId  Id param");
     isTypeOf(id, "string", "basket item id");
@@ -97,7 +82,7 @@ itemInBasketRouter
 
     itemInBasket.quantity = quantity;
 
-    if (itemInBasket.userId !== reqUserId) throw new AuthInvalidError();
+    if (itemInBasket.userId !== user.id) throw new AuthInvalidError();
 
     await itemInBasket.update();
     res.json(itemInBasket as ItemInBasketEntity);
@@ -108,14 +93,13 @@ itemInBasketRouter
       body: { id },
     }: { body: DeleteItemInBasketRequest } = req;
 
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
+    const { user } = req;
 
     exists(id, "itemInBasket id param");
     isTypeOf(id, "string", "basket item id");
     const itemInBasket = await ItemInBasketRecord.getOne(id);
     isNull(itemInBasket, null, "No item In Basket found for this ID.");
-    if (itemInBasket.userId !== reqUserId) throw new AuthInvalidError();
+    if (itemInBasket.userId !== user.id) throw new AuthInvalidError();
 
     await itemInBasket.delete();
     res.json({ message: "item deleted successfully." });

@@ -1,22 +1,25 @@
 import { Router } from "express";
 import { PersonalInfoRecord } from "../../records";
-import { PersonalInfoEntity, UserAuthReq } from "../../types";
+import {
+  PersonalInfoEntity,
+  SetPersonalInfoReq,
+  UserAuthReq,
+} from "../../types";
 import { isNull, isSmaller, isTypeOf } from "../../utils/dataCheck";
-import { SetPersonalInfoReq } from "../../types";
 import { authenticateToken } from "../../middleware/auth";
-import { AuthInvalidError, InvalidTokenError } from "../../utils/errors";
+import { AuthInvalidError } from "../../utils/errors";
+
 export const personalInfoRouter = Router();
 
 personalInfoRouter
 
   .get("/", authenticateToken, async (req: UserAuthReq, res) => {
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
+    const { user } = req;
 
-    const personalInfo = await PersonalInfoRecord.getUserInfo(reqUserId);
+    const personalInfo = await PersonalInfoRecord.getUserInfo(user.id);
     isNull(personalInfo, null, "personalInfo does not exists");
 
-    if (personalInfo.userId !== reqUserId) throw new AuthInvalidError();
+    if (personalInfo.userId !== user.id) throw new AuthInvalidError();
 
     res.json(personalInfo as PersonalInfoEntity);
   })
@@ -27,10 +30,9 @@ personalInfoRouter
       body: SetPersonalInfoReq;
     } = req;
 
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
+    const { user } = req;
 
-    const personalInfo = await PersonalInfoRecord.getUserInfo(reqUserId);
+    const personalInfo = await PersonalInfoRecord.getUserInfo(user.id);
     isNull(personalInfo, null, "Personal Info does not exists");
 
     if (body.name) {

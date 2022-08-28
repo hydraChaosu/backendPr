@@ -15,9 +15,7 @@ import {
   UserEntity,
 } from "../../types";
 import {
-  AuthInvalidError,
   ImpossibleShopRequestError,
-  InvalidTokenError,
   ValidationError,
 } from "../../utils/errors";
 import { authenticateToken } from "../../middleware/auth";
@@ -30,21 +28,15 @@ export const userRouter = Router();
 
 userRouter
 
-  .get("/", authenticateToken, async (req: any, res) => {
-    const { user } = req;
-
-    // const { id: reqUserId } = req.user;
-    // if (!reqUserId) throw new InvalidTokenError();
-    //
-    // exists(reqUserId, "id param");
-    // isTypeOf(reqUserId, "string", "user id");
-    // const user = await UserRecord.getOne(reqUserId);
-    // isNull(user, null, "user does not exists");
-    //
-    // if (user.id !== reqUserId) throw new AuthInvalidError();
-
-    res.json(user as UserEntity);
-  })
+  .get(
+    "/",
+    authenticateToken,
+    // checkIfCorrectUserRole([UserRole.CLIENT]),
+    async (req: any, res) => {
+      const { user } = req;
+      res.json(user as UserEntity);
+    }
+  )
   .post("/register", async (req: UserAuthReq, res) => {
     const {
       body,
@@ -154,15 +146,10 @@ userRouter
     }
   })
   .get("/buy", authenticateToken, async (req: UserAuthReq, res) => {
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
+    const { user } = req;
 
-    exists(reqUserId, "user Id param");
-    isTypeOf(reqUserId, "string", "user id");
-    const user = await UserRecord.getOne(reqUserId);
-    isNull(user, null, "user does not exists");
     const itemsInBasketList = await ItemInBasketRecord.listAllItemsForUser(
-      reqUserId
+      user.id
     );
 
     if (itemsInBasketList.length === 0)
@@ -191,7 +178,7 @@ userRouter
       await shopItem.update();
     }
 
-    await ItemInBasketRecord.deleteAllItemsForUser(reqUserId);
+    await ItemInBasketRecord.deleteAllItemsForUser(user.id);
 
     res.json({ message: "Success" });
   })
@@ -202,12 +189,7 @@ userRouter
       body: SetUserCategoryReq;
     } = req;
 
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
-
-    exists(reqUserId, "user id param");
-    const user = await UserRecord.getOne(reqUserId);
-    isNull(user, null, "user does not exists");
+    const { user } = req;
 
     if (body.login) {
       isTypeOf(body.login, "string", "login");
@@ -253,15 +235,7 @@ userRouter
   })
 
   .delete("/", authenticateToken, async (req: UserAuthReq, res) => {
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
-
-    exists(reqUserId, "user id param");
-    const user = await UserRecord.getOne(reqUserId);
-
-    isNull(user, null, "No user found for this ID.");
-
-    if (user.id !== reqUserId) throw new AuthInvalidError();
+    const { user } = req;
 
     await user.delete();
     res.json({ message: "user deleted successfully." });
