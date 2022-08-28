@@ -2,8 +2,13 @@ import { pool } from "../../utils/db";
 import { ValidationError } from "../../utils/errors";
 import { v4 as uuid } from "uuid";
 import { FieldPacket } from "mysql2";
-import { UserEntity } from "../../types";
-import { exists, isBetween, isTypeOf } from "../../utils/dataCheck";
+import { UserEntity, UserRole } from "../../types";
+import {
+  exists,
+  isBetween,
+  isBetweenEqual,
+  isTypeOf,
+} from "../../utils/dataCheck";
 
 type UserRecordResults = [UserRecord[], FieldPacket[]];
 
@@ -12,6 +17,7 @@ export class UserRecord implements UserEntity {
   email: string;
   login: string;
   password: string;
+  role: UserRole;
   token?: string;
   //TODO activateToken?: string;
   //TODO isActive: 0 | 1;
@@ -20,6 +26,11 @@ export class UserRecord implements UserEntity {
     exists(obj.password, "password");
     isTypeOf(obj.password, "string", "password");
     isBetween(obj.password.length, 3, 60, "password length");
+
+    if (obj.role) {
+      isTypeOf(obj.role, "number", "role");
+      isBetweenEqual(obj.role, 0, 1, "role");
+    }
 
     exists(obj.login, "login");
     isTypeOf(obj.login, "string", "login");
@@ -49,6 +60,7 @@ export class UserRecord implements UserEntity {
     this.email = obj.email;
     this.password = obj.password;
     this.token = obj.token;
+    this.role = obj.role;
     // this.activateToken = obj.activateToken;
     // this.isActive = obj.isActive ? obj.isActive : 0;
   }
@@ -69,6 +81,7 @@ export class UserRecord implements UserEntity {
         login: this.login,
         email: this.email,
         password: this.password,
+        role: this.role,
       }
     );
 
