@@ -23,3 +23,8 @@ export interface GetOneUserReq {
 export interface DeleteOneUserReq {
   id: string;
 }
+
+export enum UserRole {
+  CLIENT,
+  ADMIN,
+}
