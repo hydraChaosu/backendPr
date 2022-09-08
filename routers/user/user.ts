@@ -8,6 +8,7 @@ import {
 import { exists, isBetween, isNull, isTypeOf } from "../../utils/dataCheck";
 import {
   CreateUserReq,
+  CreateUserRes,
   LoginUserReq,
   PersonalInfoCreateReq,
   SetUserCategoryReq,
@@ -88,7 +89,10 @@ userRouter
     const newPersonalInfo = new PersonalInfoRecord(personalInfoTemp);
     await newPersonalInfo.insert();
 
-    res.json(user as UserEntity);
+    res.json({
+      message: "user created successfully",
+      isSuccess: true,
+    } as CreateUserRes);
   })
   .post("/login", async (req: UserAuthReq, res) => {
     const {
