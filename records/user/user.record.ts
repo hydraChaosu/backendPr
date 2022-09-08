@@ -2,7 +2,7 @@ import { pool } from "../../utils/db";
 import { ValidationError } from "../../utils/errors";
 import { v4 as uuid } from "uuid";
 import { FieldPacket } from "mysql2";
-import { UserEntity } from "../../types";
+import { UserEntity, UserRole } from "../../types";
 import { exists, isBetween, isTypeOf } from "../../utils/dataCheck";
 
 type UserRecordResults = [UserRecord[], FieldPacket[]];
@@ -12,14 +12,20 @@ export class UserRecord implements UserEntity {
   email: string;
   login: string;
   password: string;
+  role: UserRole;
   token?: string;
-  activateToken?: string;
-  isActive: 0 | 1;
+  //TODO activateToken?: string;
+  //TODO isActive: 0 | 1;
 
   constructor(obj: UserEntity) {
     exists(obj.password, "password");
     isTypeOf(obj.password, "string", "password");
     isBetween(obj.password.length, 3, 60, "password length");
+
+    if (obj.role) {
+      isTypeOf(obj.role, "number", "role");
+      isBetween(obj.role, 0, 1, "role");
+    }
 
     exists(obj.login, "login");
     isTypeOf(obj.login, "string", "login");
@@ -32,10 +38,26 @@ export class UserRecord implements UserEntity {
     }
     isBetween(obj.email.length, 3, 40, "email length");
 
+    if (obj.token) {
+      isTypeOf(obj.token, "string", "token");
+    }
+
+    // if (obj.activateToken) {
+    //   isTypeOf(obj.activateToken, "string", "activate token");
+    // }
+    //
+    // if (obj.isActive) {
+    //   isTypeOf(obj.isActive, "number", "is active");
+    // }
+
     this.id = obj.id;
     this.login = obj.login;
     this.email = obj.email;
     this.password = obj.password;
+    this.token = obj.token;
+    this.role = obj.role;
+    // this.activateToken = obj.activateToken;
+    // this.isActive = obj.isActive ? obj.isActive : 0;
   }
 
   async insert(): Promise<string> {
@@ -48,13 +70,13 @@ export class UserRecord implements UserEntity {
 
     console.log(this);
     await pool.execute(
-      "INSERT INTO `users`(`id`, `login`, `email`,`password`, `isActive`) VALUES(:id, :login, :email, :password, :isActive)",
+      "INSERT INTO `users`(`id`, `login`, `email`,`password`) VALUES(:id, :login, :email, :password)",
       {
         id: this.id,
         login: this.login,
         email: this.email,
         password: this.password,
-        isActive: 0,
+        role: this.role,
       }
     );
 
@@ -63,12 +85,15 @@ export class UserRecord implements UserEntity {
 
   async update(): Promise<void> {
     await pool.execute(
-      "UPDATE `users` SET `login` = :login, `email` = :email, `password` = :password WHERE `id` = :id",
+      "UPDATE `users` SET `login` = :login, `email` = :email, `password` = :password, `token` = :token WHERE `id` = :id",
       {
         id: this.id,
         login: this.login,
         email: this.email,
         password: this.password,
+        token: this.token,
+        // activateToken: this.activateToken,
+        // isActive: this.isActive,
       }
     );
   }
@@ -91,6 +116,16 @@ export class UserRecord implements UserEntity {
       "SELECT * FROM `users` WHERE `id` = :id",
       {
         id,
+      }
+    )) as UserRecordResults;
+    return results.length === 0 ? null : new UserRecord(results[0]);
+  }
+
+  static async getOneByToken(token: string): Promise<UserRecord | null> {
+    const [results] = (await pool.execute(
+      "SELECT * FROM `users` WHERE `token` = :token",
+      {
+        token,
       }
     )) as UserRecordResults;
     return results.length === 0 ? null : new UserRecord(results[0]);
@@ -121,6 +156,16 @@ export class UserRecord implements UserEntity {
       "SELECT * FROM `users` WHERE `email` = :email",
       {
         email,
+      }
+    )) as UserRecordResults;
+    return results.length !== 0;
+  }
+
+  static async isAuthTokenUsed(token: string): Promise<Boolean> {
+    const [results] = (await pool.execute(
+      "SELECT * FROM `users` WHERE `token` = :token",
+      {
+        token,
       }
     )) as UserRecordResults;
     return results.length !== 0;

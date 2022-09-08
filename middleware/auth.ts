@@ -1,7 +1,13 @@
-import { NextFunction, Request } from "express";
+import { NextFunction } from "express";
 import { Response } from "express/ts4.0";
-import { AuthInvalidError, TokenError } from "../utils/errors";
-import { AuthRequest, IsAdminRequest, UserAuthReq } from "../types";
+import {
+  AuthInvalidError,
+  InvalidTokenError,
+  TokenError,
+} from "../utils/errors";
+import { UserAuthReq, UserRole } from "../types";
+import { UserRecord } from "../records";
+import { isNull } from "../utils/dataCheck";
 
 const jwt = require("jsonwebtoken");
 
@@ -9,72 +15,47 @@ export function authenticateToken(
   req: UserAuthReq,
   res: Response,
   next: NextFunction
-) {
-  const authHeader = req.headers["authorization"];
+): void {
+  let token: any = req.cookies.jwt ? req.cookies.jwt : null;
 
-  let token = null;
-
-  if (typeof authHeader === "string") {
-    token = authHeader;
-  }
-
-  if (token == null) {
+  if (token === null) {
     throw new TokenError();
   }
 
-  jwt.verify(
-    token,
-    process.env.TOKEN_SECRET as string,
-    (err: any, user: any) => {
-      console.log(err);
+  try {
+    jwt.verify(
+      token,
+      process.env.TOKEN_SECRET as string,
+      async (err: any, payload: any) => {
+        console.log(err);
+        console.log(payload);
+        console.log(payload?.id);
 
-      if (err) throw new AuthInvalidError();
+        if (!payload || !payload.id) {
+          throw new InvalidTokenError();
+        }
+        if (err) throw new AuthInvalidError();
 
-      req.user = user;
+        req.user = await UserRecord.getOneByToken(payload.id);
+        isNull(req.user, null, "user does not exists");
 
-      next();
-    }
-  );
-}
-
-export function adminToken(
-  req: IsAdminRequest,
-  res: Response,
-  next: NextFunction
-) {
-  const authHeader = req.headers["admin-authorization"];
-
-  let token = null;
-
-  if (typeof authHeader === "string") {
-    token = authHeader;
-  }
-
-  if (token == null) {
+        next();
+      }
+    );
+  } catch (e) {
     throw new TokenError();
   }
+}
 
-  jwt.verify(
-    token,
-    process.env.ADMIN_SECRET as string,
-    (err: any, user: any) => {
-      console.log(err);
+// export const checkIfUserIsActivated = (user: UserRecord): boolean =>
+//   user.isActive === 1;
 
-      if (err) throw new AuthInvalidError();
-
-      req.isAdmin = true;
-
+export const checkIfCorrectUserRole =
+  (role: UserRole[]) =>
+  (req: UserAuthReq, res: Response, next: NextFunction) => {
+    if (role.some((role: UserRole) => role === req.user.role)) {
       next();
+    } else {
+      throw new AuthInvalidError();
     }
-  );
-}
-
-function isAuthenticated(req: AuthRequest, res: Response, next: NextFunction) {
-  if (req.session.user) {
-    next(); //If session exists, proceed to page
-  } else {
-    const err = new Error("Not logged in!");
-    console.log(req.session.user);
-    next(err); //Error, trying to access unauthorized page!
-  }
-}
+  };

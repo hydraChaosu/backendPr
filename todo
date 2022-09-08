@@ -1,22 +1,17 @@
-swagger  dokumentacja                        6
+niedziela
 
-testy                                        7
-
-readme szablon                               6
-
-use passport                                 4
-logout
+change responses to message, success and payload
 express validator
 
-change responses to message, success and payload          5
-add types                                                 5
+readme szablon                               6
+swagger  dokumentacja                        6
+testy                                        7
+
+repair crashes
 
 create token for activate and send this to an email address
+activate user path
 
 statystyki recordow
 catch mysql2 errors
 cashe in db
-
-refresh token
-ciateczka
-wlasne validatory szczegolowe
