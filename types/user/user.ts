@@ -24,6 +24,11 @@ export interface DeleteOneUserReq {
   id: string;
 }
 
+export interface CreateUserRes {
+  message: string;
+  isSuccess?: boolean;
+}
+
 export enum UserRole {
   SHOPCLIENT,
   ADMIN,
