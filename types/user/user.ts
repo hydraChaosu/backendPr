@@ -24,10 +24,10 @@ export interface DeleteOneUserReq {
   id: string;
 }
 
-export interface CreateUserRes {
+export type CreateUserRes = {
   message: string;
   isSuccess?: boolean;
-}
+};
 
 export enum UserRole {
   SHOPCLIENT,

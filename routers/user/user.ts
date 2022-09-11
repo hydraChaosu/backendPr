@@ -14,6 +14,7 @@ import {
   SetUserCategoryReq,
   UserAuthReq,
   UserEntity,
+  UserLoggedIn,
 } from "../../types";
 import {
   ImpossibleShopRequestError,
@@ -35,12 +36,12 @@ userRouter
   .get(
     "/",
     [authenticateToken, checkIfCorrectUserRole([0])],
-    async (req: any, res: Response) => {
+    async (req: UserAuthReq, res: Response) => {
       const { user } = req;
       res.json(user as UserEntity);
     }
   )
-  .post("/register", async (req: UserAuthReq, res) => {
+  .post("/register", async (req: UserAuthReq, res: Response) => {
     const {
       body,
     }: {
@@ -94,7 +95,7 @@ userRouter
       isSuccess: true,
     } as CreateUserRes);
   })
-  .post("/login", async (req: UserAuthReq, res) => {
+  .post("/login", async (req: UserAuthReq, res: Response) => {
     const {
       body,
     }: {
@@ -126,7 +127,7 @@ userRouter
         .json({
           isSuccess: true,
           userId: user.id,
-        });
+        } as UserLoggedIn);
     } else {
       throw new ValidationError("Password does not match");
     }
@@ -193,7 +194,7 @@ userRouter
 
       await ItemInBasketRecord.deleteAllItemsForUser(user.id);
 
-      res.json({ message: "Success" });
+      res.json({ isSuccess: true, message: "Success" });
     }
   )
   .patch(
