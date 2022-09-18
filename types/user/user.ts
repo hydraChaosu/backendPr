@@ -9,10 +9,12 @@ export interface SetUserCategoryReq {
   login?: string;
 }
 
-export interface UserTokenResponse {
-  email: string;
-  id: string;
-}
+export type UserTokenResponse = Omit<UserEntity, "password">;
+
+// export interface UserTokenResponse {
+//   email: string;
+//   id: string;
+// }
 
 export interface GetOneUserReq {
   id: string;
@@ -20,4 +22,14 @@ export interface GetOneUserReq {
 
 export interface DeleteOneUserReq {
   id: string;
+}
+
+export type CreateUserRes = {
+  message: string;
+  isSuccess?: boolean;
+};
+
+export enum UserRole {
+  SHOPCLIENT,
+  ADMIN,
 }

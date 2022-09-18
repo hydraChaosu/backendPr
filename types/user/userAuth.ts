@@ -1,6 +1,15 @@
 import { Request } from "express";
-import { UserTokenResponse } from "./user";
+import { UserRecord } from "../../records";
 
 export interface UserAuthReq extends Request {
-  user: UserTokenResponse;
+  user: UserRecord;
 }
+
+export type UserLoggedIn = {
+  isSuccess: true;
+  userId: string;
+};
+
+// export interface UserAuthReq extends Request {
+//   user: UserTokenResponse;
+// }

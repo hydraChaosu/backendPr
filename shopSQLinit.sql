@@ -12,74 +12,81 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+
+-- Zrzut struktury bazy danych shop
+CREATE DATABASE IF NOT EXISTS `shop` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */;
+USE `shop`;
+
 -- Zrzut struktury tabela shop.basketelements
 CREATE TABLE IF NOT EXISTS `basketelements` (
-  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
-  `shopItemId` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
-  `userId` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
-  `quantity` int(3) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`),
-  KEY `FK_basketelements_shopitems` (`shopItemId`) USING BTREE,
-  KEY `FK_basketelements_users` (`userId`),
-  CONSTRAINT `FK_basketelements_shopitems` FOREIGN KEY (`shopItemId`) REFERENCES `shopitems` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
-  CONSTRAINT `FK_basketelements_users` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+                                                `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
+                                                `shopItemId` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
+                                                `userId` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
+                                                `quantity` int(3) NOT NULL DEFAULT 0,
+                                                PRIMARY KEY (`id`),
+                                                KEY `FK_basketelements_shopitems` (`shopItemId`) USING BTREE,
+                                                KEY `FK_basketelements_users` (`userId`),
+                                                CONSTRAINT `FK_basketelements_shopitems` FOREIGN KEY (`shopItemId`) REFERENCES `shopitems` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+                                                CONSTRAINT `FK_basketelements_users` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Eksport danych został odznaczony.
 
 -- Zrzut struktury tabela shop.categories
 CREATE TABLE IF NOT EXISTS `categories` (
-  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
-  `name` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`)
+                                            `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
+                                            `name` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+                                            PRIMARY KEY (`id`),
+                                            UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Eksport danych został odznaczony.
 
 -- Zrzut struktury tabela shop.personalinfo
 CREATE TABLE IF NOT EXISTS `personalinfo` (
-  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
-  `userId` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
-  `name` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT '',
-  `surname` varchar(47) COLLATE utf8mb4_unicode_ci DEFAULT '',
-  `city` varchar(85) COLLATE utf8mb4_unicode_ci DEFAULT '',
-  `country` varchar(56) COLLATE utf8mb4_unicode_ci DEFAULT '',
-  `street` varchar(85) COLLATE utf8mb4_unicode_ci DEFAULT '',
-  `buildingNumber` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT '',
-  `postalCode` varchar(6) COLLATE utf8mb4_unicode_ci DEFAULT '',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `userId` (`userId`),
-  CONSTRAINT `FK_personalinfo_users` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+                                              `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
+                                              `userId` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
+                                              `name` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT '',
+                                              `surname` varchar(47) COLLATE utf8mb4_unicode_ci DEFAULT '',
+                                              `city` varchar(85) COLLATE utf8mb4_unicode_ci DEFAULT '',
+                                              `country` varchar(56) COLLATE utf8mb4_unicode_ci DEFAULT '',
+                                              `street` varchar(85) COLLATE utf8mb4_unicode_ci DEFAULT '',
+                                              `buildingNumber` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT '',
+                                              `postalCode` varchar(6) COLLATE utf8mb4_unicode_ci DEFAULT '',
+                                              PRIMARY KEY (`id`),
+                                              UNIQUE KEY `userId` (`userId`),
+                                              CONSTRAINT `FK_personalinfo_users` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Eksport danych został odznaczony.
 
 -- Zrzut struktury tabela shop.shopitems
 CREATE TABLE IF NOT EXISTS `shopitems` (
-  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
-  `name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `img` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `quantity` int(4) NOT NULL DEFAULT 0,
-  `price` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `categoryId` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`),
-  KEY `FK_shopitems_categories` (`categoryId`),
-  CONSTRAINT `FK_shopitems_categories` FOREIGN KEY (`categoryId`) REFERENCES `categories` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+                                           `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
+                                           `name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+                                           `img` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+                                           `quantity` int(4) NOT NULL DEFAULT 0,
+                                           `price` decimal(10,2) NOT NULL DEFAULT 0.00,
+                                           `categoryId` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
+                                           PRIMARY KEY (`id`),
+                                           UNIQUE KEY `name` (`name`),
+                                           KEY `FK_shopitems_categories` (`categoryId`),
+                                           CONSTRAINT `FK_shopitems_categories` FOREIGN KEY (`categoryId`) REFERENCES `categories` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Eksport danych został odznaczony.
 
 -- Zrzut struktury tabela shop.users
 CREATE TABLE IF NOT EXISTS `users` (
-  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
-  `email` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `login` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `password` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `login` (`login`),
-  UNIQUE KEY `email` (`email`)
+                                       `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT uuid(),
+                                       `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+                                       `login` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+                                       `password` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
+                                       `token` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+                                       `role` tinyint(1) NOT NULL DEFAULT 0,
+                                       PRIMARY KEY (`id`),
+                                       UNIQUE KEY `login` (`login`),
+                                       UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Eksport danych został odznaczony.
@@ -88,7 +95,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION';
 DELIMITER //
 CREATE TRIGGER `categories_after_delete` AFTER DELETE ON `categories` FOR EACH ROW BEGIN
-	DELETE FROM `shopitems` WHERE `categoryId` NOT IN (SELECT DISTINCT `id` FROM `categories`);
+    DELETE FROM `shopitems` WHERE `categoryId` NOT IN (SELECT DISTINCT `id` FROM `categories`);
 END//
 DELIMITER ;
 SET SQL_MODE=@OLDTMP_SQL_MODE;
@@ -97,7 +104,7 @@ SET SQL_MODE=@OLDTMP_SQL_MODE;
 SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION';
 DELIMITER //
 CREATE TRIGGER `shopitems_after_delete` AFTER DELETE ON `shopitems` FOR EACH ROW BEGIN
-	DELETE FROM `basketelements` WHERE `shopItemId` NOT IN (SELECT DISTINCT `id` FROM `shopitems`);
+    DELETE FROM `basketelements` WHERE `shopItemId` NOT IN (SELECT DISTINCT `id` FROM `shopitems`);
 END//
 DELIMITER ;
 SET SQL_MODE=@OLDTMP_SQL_MODE;
@@ -106,8 +113,8 @@ SET SQL_MODE=@OLDTMP_SQL_MODE;
 SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION';
 DELIMITER //
 CREATE TRIGGER `users_after_delete` AFTER DELETE ON `users` FOR EACH ROW BEGIN
-	DELETE FROM `personalinfo` WHERE `userId` NOT IN (SELECT DISTINCT `id` FROM `users`);
-	DELETE FROM `basketelements` WHERE `userId` NOT IN (SELECT DISTINCT `id` FROM `users`);
+    DELETE FROM `personalinfo` WHERE `userId` NOT IN (SELECT DISTINCT `id` FROM `users`);
+    DELETE FROM `basketelements` WHERE `userId` NOT IN (SELECT DISTINCT `id` FROM `users`);
 END//
 DELIMITER ;
 SET SQL_MODE=@OLDTMP_SQL_MODE;

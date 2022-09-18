@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Response, Router } from "express";
 import {
   ItemInBasketRecord,
   PersonalInfoRecord,
@@ -6,16 +6,26 @@ import {
   UserRecord,
 } from "../../records";
 import { exists, isBetween, isNull, isTypeOf } from "../../utils/dataCheck";
-import { PersonalInfoCreateReq, UserAuthReq, UserEntity } from "../../types";
-import { CreateUserReq, LoginUserReq, SetUserCategoryReq } from "../../types";
 import {
-  AuthInvalidError,
+  CreateUserReq,
+  CreateUserRes,
+  LoginUserReq,
+  PersonalInfoCreateReq,
+  SetUserCategoryReq,
+  UserAuthReq,
+  UserEntity,
+  UserLoggedIn,
+} from "../../types";
+import {
   ImpossibleShopRequestError,
-  InvalidTokenError,
   ValidationError,
 } from "../../utils/errors";
-import { generateAccessToken } from "../../utils/generateToken";
-import { authenticateToken } from "../../middleware/auth";
+import {
+  authenticateToken,
+  checkIfCorrectUserRole,
+} from "../../middleware/auth";
+import { generateAuthToken } from "../../utils/generateToken";
+
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
@@ -23,20 +33,15 @@ export const userRouter = Router();
 
 userRouter
 
-  .get("/", authenticateToken, async (req: UserAuthReq, res) => {
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
-
-    exists(reqUserId, "id param");
-    isTypeOf(reqUserId, "string", "user id");
-    const user = await UserRecord.getOne(reqUserId);
-    isNull(user, null, "user does not exists");
-
-    if (user.id !== reqUserId) throw new AuthInvalidError();
-
-    res.json(user as UserEntity);
-  })
-  .post("/register", async (req: UserAuthReq, res) => {
+  .get(
+    "/",
+    [authenticateToken, checkIfCorrectUserRole([0])],
+    async (req: UserAuthReq, res: Response) => {
+      const { user } = req;
+      res.json(user as UserEntity);
+    }
+  )
+  .post("/register", async (req: UserAuthReq, res: Response) => {
     const {
       body,
     }: {
@@ -85,9 +90,12 @@ userRouter
     const newPersonalInfo = new PersonalInfoRecord(personalInfoTemp);
     await newPersonalInfo.insert();
 
-    res.json(user as UserEntity);
+    res.json({
+      message: "user created successfully",
+      isSuccess: true,
+    } as CreateUserRes);
   })
-  .post("/login", async (req: UserAuthReq, res) => {
+  .post("/login", async (req: UserAuthReq, res: Response) => {
     const {
       body,
     }: {
@@ -101,7 +109,7 @@ userRouter
     exists(body.login, "login");
     isTypeOf(body.login, "string", "login");
     const user = await UserRecord.getOneByLogin(body.login);
-    isNull(user, null, "shopItem does not exists");
+    isNull(user, null, "user does not exists");
 
     exists(body.password, "password");
     isTypeOf(body.password, "string", "password");
@@ -109,122 +117,149 @@ userRouter
 
     const match = await bcrypt.compare(body.password, user.password);
     if (match) {
-      const token = generateAccessToken({ id: user.id, email: user.email });
-      res.json({ token });
+      const token = await generateAuthToken(user);
+      res
+        .cookie("jwt", token, {
+          secure: false,
+          domain: "localhost",
+          httpOnly: true,
+        })
+        .json({
+          isSuccess: true,
+          userId: user.id,
+        } as UserLoggedIn);
     } else {
       throw new ValidationError("Password does not match");
     }
   })
-  .get("/buy", authenticateToken, async (req: UserAuthReq, res) => {
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
+  .get(
+    "/logout",
+    [authenticateToken, checkIfCorrectUserRole([0, 1])],
+    async (req: UserAuthReq, res: Response) => {
+      const { user } = req;
+      try {
+        user.token = null;
+        await user.update();
 
-    exists(reqUserId, "user Id param");
-    isTypeOf(reqUserId, "string", "user id");
-    const user = await UserRecord.getOne(reqUserId);
-    isNull(user, null, "user does not exists");
-    const itemsInBasketList = await ItemInBasketRecord.listAllItemsForUser(
-      reqUserId
-    );
-
-    if (itemsInBasketList.length === 0)
-      throw new ImpossibleShopRequestError("the basket is empty");
-
-    for (const item of itemsInBasketList) {
-      const shopItem = await ShopItemRecord.getOne(item.shopItemId);
-      isNull(shopItem, null, "shopItem does not exists");
-
-      if (item.quantity > shopItem.quantity) {
-        if (shopItem.quantity === 0) {
-          await item.delete();
-        }
-        item.quantity = shopItem.quantity;
-        await item.update();
-        throw new ImpossibleShopRequestError(
-          `not enough of ${shopItem.name} quantity in shop and set to max val or deleted`
-        );
-      }
-    }
-
-    for (const item of itemsInBasketList) {
-      const shopItem = await ShopItemRecord.getOne(item.shopItemId);
-      isNull(shopItem, null, "shopItem does not exists");
-      shopItem.quantity = shopItem.quantity - item.quantity;
-      await shopItem.update();
-    }
-
-    await ItemInBasketRecord.deleteAllItemsForUser(reqUserId);
-
-    res.json({ message: "Success" });
-  })
-  .patch("/", authenticateToken, async (req: UserAuthReq, res) => {
-    const {
-      body,
-    }: {
-      body: SetUserCategoryReq;
-    } = req;
-
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
-
-    exists(reqUserId, "user id param");
-    const user = await UserRecord.getOne(reqUserId);
-    isNull(user, null, "user does not exists");
-
-    if (body.login) {
-      isTypeOf(body.login, "string", "login");
-      isBetween(body.login.length, 3, 20, "login length");
-      const isLoginUsed = await UserRecord.isLoginUsed(body.login);
-      if (isLoginUsed) {
-        throw new ValidationError("login is already in use");
-      }
-      user.login = body.login;
-    }
-
-    if (body.password) {
-      isTypeOf(body.password, "string", "password");
-      isBetween(body.password.length, 3, 60, "password length");
-      const hashedPassword = await bcrypt
-        .hash(body.password, saltRounds)
-        .then(function (hash: string) {
-          body.password = hash;
+        res.clearCookie("jwt", {
+          secure: false,
+          domain: "localhost",
+          httpOnly: true,
         });
-      user.password = body.password;
-    }
 
-    if (body.email) {
-      isTypeOf(body.email, "string", "email");
-      if (
-        !body.email.match(
-          /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-        )
-      ) {
-        throw new ValidationError("email is not correct");
+        return res.json({ isSuccess: true });
+      } catch (e) {
+        return res.json({
+          isSuccess: false,
+          error: e.message,
+        });
       }
-      isBetween(body.email.length, 3, 40, "email length");
-      const isEmailUsed = await UserRecord.isEmailUsed(body.email);
-      if (isEmailUsed) {
-        throw new ValidationError("email is already in use");
-      }
-      user.email = body.email;
     }
+  )
+  .get(
+    "/buy",
+    [authenticateToken, checkIfCorrectUserRole([0])],
+    async (req: UserAuthReq, res: Response) => {
+      const { user } = req;
 
-    await user.update();
+      const itemsInBasketList = await ItemInBasketRecord.listAllItemsForUser(
+        user.id
+      );
 
-    res.json(user as UserEntity);
-  })
+      if (itemsInBasketList.length === 0)
+        throw new ImpossibleShopRequestError("the basket is empty");
 
-  .delete("/", authenticateToken, async (req: UserAuthReq, res) => {
-    const { id: reqUserId } = req.user;
-    if (!reqUserId) throw new InvalidTokenError();
+      for (const item of itemsInBasketList) {
+        const shopItem = await ShopItemRecord.getOne(item.shopItemId);
+        isNull(shopItem, null, "shopItem does not exists");
 
-    exists(reqUserId, "user id param");
-    const user = await UserRecord.getOne(reqUserId);
+        if (item.quantity > shopItem.quantity) {
+          if (shopItem.quantity === 0) {
+            await item.delete();
+          }
+          item.quantity = shopItem.quantity;
+          await item.update();
+          throw new ImpossibleShopRequestError(
+            `not enough of ${shopItem.name} quantity in shop and set to max val or deleted`
+          );
+        }
+      }
 
-    isNull(user, null, "No user found for this ID.");
+      for (const item of itemsInBasketList) {
+        const shopItem = await ShopItemRecord.getOne(item.shopItemId);
+        isNull(shopItem, null, "shopItem does not exists");
+        shopItem.quantity = shopItem.quantity - item.quantity;
+        await shopItem.update();
+      }
 
-    if (user.id !== reqUserId) throw new AuthInvalidError();
+      await ItemInBasketRecord.deleteAllItemsForUser(user.id);
 
-    await user.delete();
-    res.json({ message: "user deleted successfully." });
-  });
+      res.json({ isSuccess: true, message: "Success" });
+    }
+  )
+  .patch(
+    "/",
+    [authenticateToken, checkIfCorrectUserRole([0])],
+    async (req: UserAuthReq, res: Response) => {
+      const {
+        body,
+      }: {
+        body: SetUserCategoryReq;
+      } = req;
+
+      const { user } = req;
+
+      if (body.login) {
+        isTypeOf(body.login, "string", "login");
+        isBetween(body.login.length, 3, 20, "login length");
+        const isLoginUsed = await UserRecord.isLoginUsed(body.login);
+        if (isLoginUsed) {
+          throw new ValidationError("login is already in use");
+        }
+        user.login = body.login;
+      }
+
+      if (body.password) {
+        isTypeOf(body.password, "string", "password");
+        isBetween(body.password.length, 3, 60, "password length");
+        const hashedPassword = await bcrypt
+          .hash(body.password, saltRounds)
+          .then(function (hash: string) {
+            body.password = hash;
+          });
+        user.password = body.password;
+      }
+
+      if (body.email) {
+        isTypeOf(body.email, "string", "email");
+        if (
+          !body.email.match(
+            /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+          )
+        ) {
+          throw new ValidationError("email is not correct");
+        }
+        isBetween(body.email.length, 3, 40, "email length");
+        const isEmailUsed = await UserRecord.isEmailUsed(body.email);
+        if (isEmailUsed) {
+          throw new ValidationError("email is already in use");
+        }
+        user.email = body.email;
+      }
+
+      await user.update();
+
+      res.json(user as UserEntity);
+    }
+  )
+
+  .delete(
+    "/",
+    [authenticateToken, checkIfCorrectUserRole([0])],
+    async (req: UserAuthReq, res: Response) => {
+      const { user } = req;
+
+      await user.delete();
+      res.json({ message: "user deleted successfully." });
+    }
+  );

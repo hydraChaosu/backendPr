@@ -1,11 +1,11 @@
-import { Router } from "express";
+import { Response, Router } from "express";
 import { PersonalInfoRecord, UserRecord } from "../../records";
 import {
   AdminDeletePersonalInfoReq,
   AdminSetPersonalInfoReq,
-  IsAdminRequest,
   PersonalInfoCreateReq,
   PersonalInfoEntity,
+  UserAuthReq,
 } from "../../types";
 import {
   exists,
@@ -14,31 +14,24 @@ import {
   isSmaller,
   isTypeOf,
 } from "../../utils/dataCheck";
-import { AuthInvalidError } from "../../utils/errors";
-import { adminToken } from "../../middleware/auth";
+
 export const adminPersonalInfoRouter = Router();
 
 adminPersonalInfoRouter
 
-  .get("/all", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .get("/all", async (req: UserAuthReq, res: Response) => {
     const personalInfoList = await PersonalInfoRecord.listAll();
 
     res.json(personalInfoList as PersonalInfoEntity[]);
   })
-  .get("/one/:id", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .get("/one/:id", async (req: UserAuthReq, res: Response) => {
     exists(req.params.id, "id param");
     const personalInfo = await PersonalInfoRecord.getOne(req.params.id);
     isNull(personalInfo, null, "shopItem does not exists");
 
     res.json(personalInfo as PersonalInfoEntity);
   })
-  .post("/", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .post("/", async (req: UserAuthReq, res: Response) => {
     const {
       body,
     }: {
@@ -140,9 +133,7 @@ adminPersonalInfoRouter
     res.json(newPersonalInfo as PersonalInfoEntity);
   })
 
-  .patch("/", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .patch("/", async (req: UserAuthReq, res: Response) => {
     const {
       body,
     }: {
@@ -234,9 +225,7 @@ adminPersonalInfoRouter
     res.json(personalInfo as PersonalInfoEntity);
   })
 
-  .delete("/", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .delete("/", async (req: UserAuthReq, res: Response) => {
     const {
       body,
     }: {

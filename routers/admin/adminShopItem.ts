@@ -1,5 +1,4 @@
-import { Router } from "express";
-import { adminToken } from "../../middleware/auth";
+import { Response, Router } from "express";
 import { CategoryRecord, ShopItemRecord } from "../../records";
 import {
   exists,
@@ -14,26 +13,22 @@ import {
   DeleteOneShopItemReq,
   SetShopItemCategoryReq,
   ShopItemCreateReq,
+  ShopItemEntity,
+  UserAuthReq,
 } from "../../types";
-import { IsAdminRequest, ShopItemEntity } from "../../types";
-import { AuthInvalidError } from "../../utils/errors";
 
 export const adminShopItemRouter = Router();
 
 adminShopItemRouter
-  .get("/all", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .get("/all", async (req: UserAuthReq, res: Response) => {
     const shopItemList = await ShopItemRecord.listAll();
 
     res.json(shopItemList as ShopItemEntity[]);
   })
   .get(
     "/all/category/:categoryId",
-    adminToken,
-    async (req: IsAdminRequest, res) => {
-      if (!req.isAdmin) throw new AuthInvalidError();
 
+    async (req: UserAuthReq, res) => {
       const { categoryId } = req.params;
       exists(categoryId, "id param");
 
@@ -44,9 +39,7 @@ adminShopItemRouter
       res.json(shopItemList as ShopItemEntity[]);
     }
   )
-  .get("/all/name/:name", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .get("/all/name/:name", async (req: UserAuthReq, res: Response) => {
     const { name } = req.params;
     exists(name, "name");
 
@@ -55,9 +48,7 @@ adminShopItemRouter
 
     res.json(shopItemList as ShopItemEntity[]);
   })
-  .get("/one/:id", adminToken, async (req: IsAdminRequest, res) => {
-    if (!req.isAdmin) throw new AuthInvalidError();
-
+  .get("/one/:id", async (req: UserAuthReq, res) => {
     const { id } = req.params;
     exists(id, "id param");
 
@@ -66,14 +57,12 @@ adminShopItemRouter
 
     res.json(shopItem as ShopItemEntity);
   })
-  .post("/", adminToken, async (req: IsAdminRequest, res) => {
+  .post("/", async (req: UserAuthReq, res: Response) => {
     let {
       body: { categoryId, name, quantity, price, img },
     }: {
       body: ShopItemCreateReq;
     } = req;
-
-    if (!req.isAdmin) throw new AuthInvalidError();
 
     exists(name, "name");
     isTypeOf(name, "string", "name");
@@ -103,14 +92,12 @@ adminShopItemRouter
     res.json(newShopItem as ShopItemEntity);
   })
 
-  .patch("/", adminToken, async (req: IsAdminRequest, res) => {
+  .patch("/", async (req: UserAuthReq, res: Response) => {
     const {
       body: { categoryId, img, name, price, quantity, id },
     }: {
       body: SetShopItemCategoryReq;
     } = req;
-
-    if (!req.isAdmin) throw new AuthInvalidError();
 
     exists(id, "shop item id");
     isTypeOf(id, "string", "id");
@@ -155,14 +142,12 @@ adminShopItemRouter
     res.json(shopItem as ShopItemEntity);
   })
 
-  .delete("/", adminToken, async (req: IsAdminRequest, res) => {
+  .delete("/", async (req: UserAuthReq, res: Response) => {
     const {
       body: { id },
     }: {
       body: DeleteOneShopItemReq;
     } = req;
-
-    if (!req.isAdmin) throw new AuthInvalidError();
 
     exists(id, "shop item id");
     isTypeOf(id, "string", "id");
