@@ -109,7 +109,7 @@ userRouter
     exists(body.login, "login");
     isTypeOf(body.login, "string", "login");
     const user = await UserRecord.getOneByLogin(body.login);
-    isNull(user, null, "shopItem does not exists");
+    isNull(user, null, "user does not exists");
 
     exists(body.password, "password");
     isTypeOf(body.password, "string", "password");
