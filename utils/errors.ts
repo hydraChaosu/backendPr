@@ -19,35 +19,30 @@ export const handleError = (
     res.status(404).json({
       message: "Not found",
     });
-    return;
   }
 
   if (err instanceof TokenError) {
     res.status(401).json({
       message: "no token",
     });
-    return;
   }
 
   if (err instanceof AuthInvalidError) {
     res.status(403).json({
       message: "no access",
     });
-    return;
   }
 
   if (err instanceof InvalidTokenError) {
     res.status(403).json({
       message: "InvalidTokenError",
     });
-    return;
   }
 
   if (err instanceof ImpossibleShopRequestError) {
     res.status(400).json({
       message: err.message,
     });
-    return;
   }
 
   res.status(err instanceof ValidationError ? 400 : 500).json({
